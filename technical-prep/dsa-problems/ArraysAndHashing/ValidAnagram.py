@@ -1,11 +1,13 @@
 from collections import defaultdict
 
 class Solution:
+
     def str_to_dict(s: str) -> dict:
         str_dict = defaultdict(str)
         for char in s:
             str_dict[char] += 1
         return str_dict
+
 
     def isAnagram(self, s: str, t: str) -> bool:
 
@@ -26,4 +28,5 @@ class Solution:
                     return False
             else:
                 return False
+        
         return True
