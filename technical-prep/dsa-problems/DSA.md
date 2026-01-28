@@ -6,7 +6,7 @@
 3. Sliding Window 2/6 (1 easy, 1 medium)
 4. Stack: 3/6 (1 easy, 2 medium)
 5. Binary Search: 4/7 (1 easy, 3 medium)
-6. Linked List: 3/11 (3 medium)
+6. Linked List: 4/11 (1 easy, 3 medium)
 7. Trees: 2/15 (2 medium)
 8. Heap/Priority Queue: 2/7 (2 medium)
 9. Backtracking: 3/10 (3 medium)
@@ -21,9 +21,9 @@
 18. Bit Manipulation: 0/7
 
 Total per Difficulty Level:
-- Easy: 9
+- Easy: 10
 - Medium: 31
 - Hard: 0
 
-***Progress: 40/150***
+***Progress: 41/150***
 
