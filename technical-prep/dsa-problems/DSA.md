@@ -17,11 +17,11 @@
 14. 2-D Dynamic Programming: 0/11
 15. Greedy: 2/8 (2 medium)
 16. Intervals: 1/6 (1 easy)
-17. Math & Geometry: 0/8
+17. Math & Geometry: 1/8 (1 easy)
 18. Bit Manipulation: 0/7
 
 Total per Difficulty Level:
-- Easy: 13
+- Easy: 14
 - Medium: 31
 - Hard: 0
 
