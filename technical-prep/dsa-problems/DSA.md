@@ -3,7 +3,7 @@
 *Categories:*
 1. Arrays and Hashing: 9/9 (3 easy, 6 medium)
 2. Two Pointers: 3/5 (1 easy, 2 medium)
-3. Sliding Window 2/6 (1 easy, 1 medium)
+3. Sliding Window 3/6 (1 easy, 2 medium)
 4. Stack: 4/6 (1 easy, 3 medium)
 5. Binary Search: 4/7 (1 easy, 3 medium)
 6. Linked List: 6/11 (3 easy, 3 medium)
@@ -22,7 +22,7 @@
 
 Total per Difficulty Level:
 - Easy: 24
-- Medium: 33
+- Medium: 34
 - Hard: 0
 
-***Progress: 57/150***
+***Progress: 58/150***
