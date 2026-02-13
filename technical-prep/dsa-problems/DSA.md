@@ -7,7 +7,7 @@
 4. Stack: 4/6 (1 easy, 3 medium)
 5. Binary Search: 4/7 (1 easy, 3 medium)
 6. Linked List: 7/11 (3 easy, 4 medium)
-7. Trees: 8/15 (6 easy, 2 medium)
+7. Trees: 9/15 (6 easy, 3 medium)
 8. Heap/Priority Queue: 4/7 (2 easy, 2 medium)
 9. Backtracking: 4/10 (4 medium)
 10. Tries: 0/3
@@ -22,7 +22,7 @@
 
 Total per Difficulty Level:
 - Easy: 24
-- Medium: 37
+- Medium: 38
 - Hard: 0
 
-***Progress: 61/150***
+***Progress: 62/150***
