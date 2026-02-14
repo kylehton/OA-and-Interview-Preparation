@@ -1,10 +1,10 @@
 from typing import Optional
 
 # Definition for singly-linked list.
-# class ListNode:
-#     def __init__(self, val=0, next=None):
-#         self.val = val
-#         self.next = next
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
 
 # we use a fast-slow pointer combination, where we use a stopgap
 # approach ebtween two pointers. the slow pointer tracks the actual
@@ -12,8 +12,7 @@ from typing import Optional
 # certain number of iterations
 
 class Solution:
-    def removeNthFromEnd(self, head: Optional[ListNode], n: int) -> Optional[ListNode]:
-        
+    def removeNthFromEnd(self, head: Optional[ListNode], n: int) -> Optional[ListNode]:   
         newHead = ListNode()
         newHead.next = head
         slow = newHead

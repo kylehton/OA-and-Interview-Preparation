@@ -9,7 +9,7 @@ import heapq
 from collections import deque
 
 class Solution:
-    def leastInterval(self, tasks: List[str], n: int) -> int:
+    def leastInterval(self, tasks: list[str], n: int) -> int:
         task_dict = {}
         for task in tasks:
             task_dict[task] = task_dict.get(task,0) + 1
