@@ -1,4 +1,4 @@
-**Technical Round 1**
+## **Technical Round 1 Questions for Interviewers/Engineers**
 
 - If I were to have been hired for this role, what traits and contributions would I have had to embody during my time interning at Khan Academy for you to look back and think, “I made a good decision in selecting him”?
 
@@ -24,7 +24,7 @@
 
 
 
-**Technical Round 2**
+## **Technical Round 2 Questions for Interviewers/Engineers**
 
 - I’ve read that Khan Academy handles a lot of data from learners around the world. How does the team approach scalability and reliability when serving millions of students, especially in regions with limited internet access?
 

@@ -1,4 +1,4 @@
-**Software Engineering Intern - Summer 2026**
+# **Software Engineering Intern - Summer 2026**
 
 Applied: 10/6/2026
 

@@ -1,6 +1,6 @@
-***Khan Academy First Round Technical Interview Preparation Q+A***
+# ***Khan Academy First Round Technical Interview Preparation Q+A***
 
-**Architecture & Design Questions**
+## **Architecture & Design Questions**
 
 1. Why did you choose an orchestration agent + review agent architecture instead of a single monolithic agent? What are the trade-offs, and how does this design help with token limits?
     I originally went with a single API call for each changed file in the diff, running sequentially. However, I wanted to have the comment be added to the pull request as soon as possible in order to minimize waiting time to review the response and make changes. So, I changed to a parallel orchestration agent and review agent architecture. This way, I could have a system in place so that the duration of the entire review would basically be as long as the longest running analysis for a given diff in a file. This also allows for separation of analysis, so the LLM only needs to focus on one source and action per call. However, since the process is now split between multiple agents per diff chunk, it consumes far more tokens. On average, one pull request with decent amount of changes runs around 10-20 cents in API usage. However, it is much faster and more detailed and focused. It also allows for larger diffs to be used, as there is a separation of prompts into multiple different agents rather than all in the same prompt, taking up lots of tokens.
@@ -15,36 +15,35 @@
 
 
 4. Walk me through the complete data flow from when a PR is opened to when a comment is posted. Include all the async operations, agent calls, and external API interactions. Note: (S) -> synchronous, (A) -> asynchronous
-    GitHub sends webhook after opening of a pull request (S)
-    The webhook is parsed to verify signature and correct type of event (S)
-    The data from the webhook payload is extracted (A)
-    Tasks are then added to FastAPI BackgroundTasks (S)
-    The orchestration agent function is then run by BackgroundTasks, beginning the review process (A)
-    The stored chunk store is then downloaded from S3 for later usage (S)
-    The diff is then retrieved from the URL (A)
-    After, it is split based on file (S)
-    Reviewing tasks are then created for each file (S)
-    All tasks are then started simultaneously, bounded by the slowest task (A)
-    In retrieving context, the function used is asynchronous, but has some synchronous parts (A)
-    The file path is parsed and the file gets chunked into functions (S)
-    Each chunk is then embedded using OpenAI embedding model (A)
-    Pinecone is then queried for any closely matching chunks to the current one, and the full text context is looked up in S3 using the hash matching the embedding to its text (S)
-    The full context is returned
-    Using that, the review is then handled by the review agent, which calls gpt-4o-mini, waiting for its response and returns it (A)
-    The summarizer orchestration agent then gathers all the reviews together and makes them into one concise block to get posted as a comment (A)
-    It is then posted onto the pull request with its GitHub token for authorization (A)
+    1. GitHub sends webhook after opening of a pull request (S)
+    2. The webhook is parsed to verify signature and correct type of event (S)
+    3. The data from the webhook payload is extracted (A)
+    4. Tasks are then added to FastAPI BackgroundTasks (S)
+    5. The orchestration agent function is then run by BackgroundTasks, beginning the review process (A)
+    6. The stored chunk store is then downloaded from S3 for later usage (S)
+    7. The diff is then retrieved from the URL (A)
+    8. After, it is split based on file (S)
+    9. Reviewing tasks are then created for each file (S)
+    10. All tasks are then started simultaneously, bounded by the slowest task (A)
+    11. In retrieving context, the function used is asynchronous, but has some synchronous parts (A)
+    12. The file path is parsed and the file gets chunked into functions (S)
+    13. Each chunk is then embedded using OpenAI embedding model (A)
+    14. Pinecone is then queried for any closely matching chunks to the current one, and the full text context is looked up in S3 using the hash matching the embedding to its text (S)
+    15. The full context is returned, and using that, the review is then handled by the review agent, which calls gpt-4o-mini, waiting for its response and returns it (A)
+    16. The summarizer orchestration agent then gathers all the reviews together and makes them into one concise block to get posted as a comment (A)
+    17. It is then posted onto the pull request with its GitHub token for authorization (A)
     After the comment is posted, the vector store is updated, first through extracting the changed file paths from the diff (S)
-    The current file content is then fetched according to the file path (A)
-    Then, the old chunks for this file are deleted from Pinecone, as well as the local chunk store JSON object (S)
-    The new file is chunked by function (S)
-    Each chunk is then embedded again (A)
-    It is then upserted to Pinecone to replace the old ones (S)
-    The local chunk store is then synced in with the temp directory chunk store, and that is synced with the chunk store in S3 (S)
+    18. The current file content is then fetched according to the file path (A)
+    19. Then, the old chunks for this file are deleted from Pinecone, as well as the local chunk store JSON object (S)
+    20. The new file is chunked by function (S)
+    21. Each chunk is then embedded again (A)
+    22. It is then upserted to Pinecone to replace the old ones (S)
+    23. The local chunk store is then synced in with the temp directory chunk store, and that is synced with the chunk store in S3 (S)
 
 5. Why did you use Mangum as the adapter for AWS Lambda? What problems does it solve, and what are the limitations of running FastAPI on Lambda?
 
 
-**RAG System & Vector Search Questions**
+## **RAG System & Vector Search Questions**
 
 6. Explain your RAG system architecture in detail. How do you decide what context is relevant for each file being reviewed?
 
@@ -66,7 +65,7 @@
 	
 
 
-**OpenAI Agents SDK & Prompting Questions**
+## **OpenAI Agents SDK & Prompting Questions**
 
 12. Why did you use OpenAI's Agents SDK instead of direct API calls to GPT models? What specific benefits does the SDK provide for your use case?
 	I chose to migrate to the Agents SDK for future improvements. The biggest benefit that using the Agents SDK has is that I can provide tools for the agent to use. The reason this isn’t currently implemented is because the changes made in my pull requests are not complex enough to require tool usage, and so adding that would not be used. Additionally, I wanted to gain some surface level understanding of how agentic systems work, and so using this helped me get some comprehension on how agents communicate and call each other.
@@ -86,7 +85,7 @@
 
 
 
-**AWS & Infrastructure Questions**
+## **AWS & Infrastructure Questions**
 
 16. Walk me through your S3 strategy for storing chunk embeddings. Why not store embeddings directly in Pinecone's metadata or use a traditional database?
     I store the full chunk text (not embeddings, which are in Pinecone) in S3 because Pinecone's metadata has a 40KB size limit per vector, which isn't sufficient for large code chunks like 500-line functions. The chunk store is a JSON file mapping chunk IDs to their full text content, file paths, and chunk IDs—essentially a lookup table. When I retrieve similar chunks from Pinecone, I only get the vector IDs and metadata back, so I use those IDs to fetch the full text from the S3-backed chunk store. A traditional database like PostgreSQL would work, but it adds operational complexity (connection pooling, VPC config for Lambda, database maintenance) for what's essentially a simple key-value lookup. S3 is simpler—no connections to manage, cheap storage ($0.023/GB/month), and Lambda can read from S3 natively in the same region with low latency. The trade-off is that I download the entire chunk store on every cold start rather than querying individual chunks, but for my current scale (200 chunks ≈ 400KB), this is faster than database round trips.
@@ -113,7 +112,7 @@
 
 
 
-Code-Specific Deep Dives
+# Code-Specific Deep Dives
 
 21. In chunk_diff(), you use re.split(r"^diff --git.+?^(@@.+?@@)", diff, flags=re.MULTILINE | re.DOTALL). Explain this regex pattern and why you need both MULTILINE and DOTALL flags.
     The pattern r"^diff --git.+?^(@@.+?@@)" is trying to split on both diff --git headers (which mark file boundaries) and @@ hunk headers (which mark changed sections within files). The ^ anchors match the start of a line, .+? is a non-greedy match of any characters, and the pattern captures the @@ hunk header in a group. MULTILINE makes ^ match the start of each line in the diff (not just the start of the entire string), which is necessary since diff --git and @@ appear on their own lines. DOTALL makes . match newline characters, allowing .+? to span multiple lines between diff --git and the next @@. Without MULTILINE, the regex wouldn't match mid-string occurrences of these markers; without DOTALL, it wouldn't capture multi-line blocks. However, I think this regex might be overly complex and could produce unexpected splits—a simpler approach would be to split only on diff --git or only on @@ depending on the granularity needed. The current pattern might create malformed chunks if the diff structure is unusual.
@@ -140,7 +139,7 @@ Code-Specific Deep Dives
 
 
 
-**Error Handling & Edge Cases**
+## **Error Handling & Edge Cases**
 
 26. What happens if OpenAI's API is down or rate-limits you during a review? How would you detect and handle this?
     Currently, if OpenAI's API is down or returns a 429 rate limit error, the async call to Runner.run() or embeddings.create() would raise an exception, which would propagate up and cause the entire background task to fail silently—no review gets posted, and the user never knows what happened. There's no retry logic, exponential backoff, or error notification. To detect this, I'd wrap API calls in try-except blocks that catch openai.RateLimitError and openai.APIError, log the errors to CloudWatch, and implement exponential backoff retries using a library like tenacity (e.g., @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10))). For rate limits specifically, I'd also add adaptive throttling—use a semaphore to limit concurrent API calls (e.g., max 10 at once) and dynamically reduce concurrency when 429 errors occur. If retries exhaust, I'd post a fallback comment to the PR like "Code review failed due to temporary API issues—please re-trigger" so users aren't left in the dark. I'd also set up CloudWatch alarms to notify me when error rates exceed thresholds.
@@ -162,16 +161,16 @@ Code-Specific Deep Dives
 
 
 
-Performance & Optimization Questions
+# Performance & Optimization Questions
 
 30. You're making sequential embedding calls in update_file_embeddings() for each chunk. Why not batch these? How would you optimize this for large files?
     I'm making sequential embedding calls because I wrote the code with simplicity in mind—each chunk gets embedded one at a time in a for loop. This is inefficient because OpenAI's embeddings API supports batching up to 2,048 inputs in a single request, which would dramatically reduce latency and cost. For a file with 10 chunks, sequential calls take ~10 × 300ms = 3 seconds, whereas a single batched call would take ~500ms. To optimize, I'd collect all chunk texts for a file, make one batched embedding call (openai.embeddings.create(input=[chunk1, chunk2, ...])), then map the returned embeddings back to their respective chunks. For very large files (e.g., 100+ chunks), I'd batch in groups of 100 to stay within API limits and memory constraints. I'd also parallelize embedding across files—instead of processing files sequentially in update_file_embeddings(), use asyncio.gather() to embed multiple files concurrently. This would reduce the embedding update phase from 20-30 seconds to 5-10 seconds for typical PRs. The trade-off is slightly more complex error handling (need to handle partial batch failures), but the performance gain is worth it for production.
 
 
 
-**Comprehensive Project Breakdown**
+# **Comprehensive Project Breakdown**
 
-*System Architecture Overview*
+## *System Architecture Overview*
 
 The Git-Lint project is a serverless, event-driven AI code reviewer that leverages an orchestration agent pattern with RAG-based context retrieval. Here's the complete flow:
 
@@ -188,7 +187,7 @@ The Git-Lint project is a serverless, event-driven AI code reviewer that leverag
 7. Posting: Comment posted to PR via GitHub API
 8. Embedding Update: Modified files are re-chunked, re-embedded, and Pinecone is updated; S3 is updated with new chunk store
 
-*Key Technical Components*
+## *Key Technical Components*
 
 1. Orchestration Agent (gpt-4o)
 - Purpose: Synthesize multiple file-level reviews into a single PR comment
@@ -213,7 +212,7 @@ The Git-Lint project is a serverless, event-driven AI code reviewer that leverag
 - Lambda: Serverless compute—pay per invocation, auto-scaling
 - Trade-off: Cold starts (~2-3s) but cost-effective for low-traffic webhooks
 
-*Critical Design Decisions*
+## *Critical Design Decisions*
 
 Why Async Everywhere?
 - GitHub webhook timeout is 10 seconds
@@ -235,7 +234,7 @@ Why Filter by File Path in Pinecone Query?
 - Ensures context is from the same file being reviewed (high relevance)
 - Without filtering, you'd get random snippets from the entire codebase
 
-*Potential Weaknesses & Interview Follow-ups*
+## *Potential Weaknesses & Interview Follow-ups*
 
 1. No retry logic: If OpenAI fails, the review silently fails
 2. No rate limiting: Concurrent PRs could exhaust API quotas
@@ -245,7 +244,7 @@ Why Filter by File Path in Pinecone Query?
 6. Global state: chunk_store could cause issues in concurrent Lambda executions (though unlikely due to Lambda's execution model)
 7. No monitoring: No CloudWatch metrics, no error alerting
 
-*Cost Analysis*
+## *Cost Analysis*
 
 For a typical PR with 5 files:
 - Embeddings: 5 files × 10 chunks × $0.02/1M tokens ≈ $0.001
@@ -254,7 +253,7 @@ For a typical PR with 5 files:
 - Pinecone: 50 queries × $0.0004/1K queries ≈ negligible
 - Total per PR: ~$0.012
 
-*What Makes This Project Strong*
+## *What Makes This Project Strong*
 
 - Real production system: Handles actual GitHub webhooks
 - Multi-agent orchestration: Demonstrates understanding of agentic patterns
@@ -263,47 +262,47 @@ For a typical PR with 5 files:
 - Async programming: Proper use of asyncio for performance
 - Cost optimization: Strategic use of gpt-4o-mini vs. gpt-4o
 
-*Key Talking Points*
+## *Key Talking Points*
 
 1. "Why agents over RAG alone?": Agents provide iterative reasoning and can handle multi-step tasks (review → summarize → post)
 2. "How does this scale?": Parallel file processing + serverless architecture means it scales horizontally automatically
 3. "Future improvements?": Add streaming responses, implement retry logic, add observability, support multi-repo configuration
 
 
-*Architecture end-to-end*
+## *Architecture end-to-end*
 
 The system is event-driven: GitHub emits a pull_request webhook to a FastAPI endpoint exposed via API Gateway. The handler validates the event, extracts the repo name, diff_url, and issue_url, and immediately enqueues a background task so the webhook can return 200 quickly. The background task initializes context by downloading the code-chunk store from S3 into /tmp, then fetches the PR diff via the diff_url. The diff is split by file, and per-file review tasks are launched in parallel with asyncio.gather; each task retrieves semantic context from Pinecone and calls the Review Agent to analyze only that file’s changes. When all file reviews finish, the Orchestrator Agent synthesizes them into a coherent PR comment and the service posts it back to GitHub. Finally, the system re-chunks and re-embeds modified files, upserts vectors into Pinecone, updates the local chunk store, and uploads the refreshed store to S3. Logs and errors flow to CloudWatch, while artifacts (the chunk store) live durably in S3 and vectors in Pinecone.
 
-*Component interaction (Lambda, FastAPI, Pinecone, S3, OpenAI Agents SDK)*
+## *Component interaction (Lambda, FastAPI, Pinecone, S3, OpenAI Agents SDK)*
 
 FastAPI (ASGI) runs inside Lambda via Mangum, translating API Gateway events into ASGI requests. S3 holds the authoritative “chunk store” (full text of code chunks keyed by ID) that the Lambda downloads to /tmp and later uploads after updates. Pinecone stores vector embeddings for those chunks, enabling filtered similarity search (by repo and file path) that powers the RAG context passed to the Review Agent. The OpenAI Agents SDK executes two roles: the Review Agent (file-level analysis using retrieved context) and the Orchestrator Agent (synthesis across files into one comment). GitHub’s REST API is used to fetch diffs and post PR comments; httpx handles async HTTP. The data path is webhook → Lambda/FastAPI → GitHub diff → Pinecone semantic search → Agents SDK for review/summarization → GitHub comment, with S3 as durable state and Pinecone as retrieval memory. Concurrency is primarily at the “per-file review” step, while updates to embeddings run sequentially today.
 
-*Why Lambda instead of EC2 or ECS*
+## *Why Lambda instead of EC2 or ECS*
 
 Lambda fits an event-driven webhook workload with bursty, short-lived compute, so you only pay per invocation and scale to zero between PRs. It removes server management and autoscaling concerns you’d shoulder on EC2 or ECS, and cold starts are acceptable because the webhook returns immediately while work continues asynchronously. Packaging as a Lambda function via Mangum is straightforward and avoids maintaining container clusters or long-lived instances. AWS handles multi-AZ resiliency automatically, which is overkill to re-create on EC2 for a sidecar review service. For small to medium traffic, Lambda’s cost model is materially cheaper than an always-on EC2/ECS footprint. The trade-offs (ephemeral disk, statelessness, timeouts) are manageable here because persistent state is externalized to S3 and Pinecone, and the heavy lift is I/O-bound. If traffic or processing windows grew dramatically, ECS/Fargate would be my next step for long-running or batched jobs.
 
-*Handling concurrent requests and scaling limits in Lambda*
+## *Handling concurrent requests and scaling limits in Lambda*
 
 Lambda scales horizontally by spinning up additional containers per concurrent invocation up to your account’s concurrency limit; API Gateway can fan in requests effortlessly. Internally, I keep per-invocation concurrency under control with asyncio.gather for parallel reviews and would cap OpenAI/Pinecone calls with a semaphore to avoid upstream rate limits. Reserved concurrency can be configured to protect downstream services from overload, and provisioned concurrency can mitigate cold starts during peak hours. Timeouts are set below 15 minutes; if a PR risks overrunning, I would batch files or push the job to an SQS-driven worker Lambda. To guard against throttling, I’d implement retries with exponential backoff and adaptive throttling that reduces concurrency on 429s. Observability from CloudWatch metrics and structured logs helps detect saturation early. In practice, the system scales on two axes: Lambda concurrency for ingress and bounded fan-out for per-file reviews.
 
-*Managing state in a stateless Lambda*
+## *Managing state in a stateless Lambda*
 
 All durable state is externalized: vectors live in Pinecone; the authoritative chunk store (full text) lives in S3; GitHub is the source of truth for repository content. The only in-memory state is the deserialized chunk store and per-request review artifacts; these persist for the life of a warm container but are re-created on cold starts. For cross-invocation coordination, S3 acts as the write-through store—after embedding updates, the chunk store JSON is written to /tmp and uploaded to S3. Because multiple Lambdas can race on writes, I would add optimistic concurrency (ETag conditional PUT or version fields) to merge changes atomically. Idempotency is achieved by deterministic chunk IDs (include content hash) so repeated runs won’t duplicate vectors. Any long-running orchestration can be pushed to queues/Step Functions to make progress resilient across invocations. This pattern keeps Lambdas stateless while maintaining a consistent external state graph.
 
-*Improvements if I had more time*
+## *Improvements if I had more time*
 
 I’d harden reliability: add batched embeddings, retry/backoff, and a semaphore-based rate limiter to guard OpenAI/Pinecone. I’d address correctness gaps by fetching file contents from the PR head SHA (not main) and adding optimistic locking for S3 updates to avoid last-write-wins. I’d parallelize the embedding update phase across files and batch chunks per file to cut latency by 3–5×. For scale, I’d move long-running reviews to SQS/Step Functions and have the webhook handler become a pure enqueuer with durable progress tracking. I’d switch Python regex chunking to AST/tree-sitter for semantically correct chunk boundaries and better decorator/nesting handling. Observability would include structured logs, tracing, and metrics (review time, cost, retrieval hit rates). Finally, I’d add an opt-in “auto-fix” mode that proposes patches and opens suggested commit PRs.
 
-*OpenAI Agents SDK: structuring reasoning/memory*
+## *OpenAI Agents SDK: structuring reasoning/memory*
 
 I model two agents: a file-level Review Agent constrained to concise, impact-focused feedback, and an Orchestrator Agent that synthesizes file reviews into a cohesive PR comment. Each agent is initialized with role instructions that bias behavior (avoid verbosity, focus on impactful changes, produce structured markdown). The Review Agent’s prompts include the diff plus retrieved context snippets to emulate “memory” of relevant parts of the repo without exceeding token limits. I avoid long transcripts; each call is largely single-shot with carefully curated context, which improves determinism and cost. If extended, I’d enable tool-calling so the agent can fetch missing symbols or neighboring files on demand, then cache those fetches. I would also track retrieval metadata so the orchestrator can cite where insights originated. The separation of roles reflects distinct reasoning tasks—analysis versus summarization.
 
 
-*OpenAI Agents SDK: handling context size/token limits*
+## *OpenAI Agents SDK: handling context size/token limits*
 
 I constrain context by retrieving a small, filtered set of chunks (top_k=2 per diff chunk) restricted to the same repo and file paths to avoid noise. Each file is reviewed in its own call, effectively multiplying available context across files and preventing a single monolithic prompt from hitting the model’s window. If I approach limits, I would truncate low-salience sections (e.g., unchanged or formatting-only hunks) and cap the number of context chunks or their total tokens. Ahead-of-call token estimation via tiktoken could enforce a hard ceiling with a buffer for the model’s output. For large PRs, batching or staged passes (quick high-level pass then deeper follow-up where needed) keeps prompts within budget. Summarization is a separate call with controlled inputs to stay under limits. If needed, I’d pivot to a higher-window model only for the summarization step.
 
-*OpenAI Agents SDK: prompting and constraining behavior*
+## *OpenAI Agents SDK: prompting and constraining behavior*
 
 Prompts explicitly differentiate impactful changes (logic, behavior, API, performance) from low-impact ones (formatting, comments), with instructions to keep non-impactful items brief and consolidate feedback. I use imperative, testable directives—“return only changed lines with explanations, no diff syntax”—to minimize model drift. Role naming (“Review Agent”, “Summarizer Agent”) and audience framing (“direct, precise, actionable feedback”) reduce verbosity and fluff. I pass file path and minimal but targeted context to anchor the model in a specific locus of code. The orchestrator gets a clearly delimited set of file reviews and a synthesis instruction, producing a single PR comment instead of per-file spam. If hallucinations appeared, I would add guard-rails like “do not infer unobserved code,” ask for uncertainty flags, or require citations back to retrieved chunks. Temperature remains low to encourage determinism.
 
@@ -311,132 +310,132 @@ Prompts explicitly differentiate impactful changes (logic, behavior, API, perfor
 
 I reduce hallucinations by limiting context strictly to retrieved chunks tied to files present in the diff, and by forbidding speculation about unseen code. The instructions ask the model to defer when context is insufficient and suggest what additional files would help, rather than fabricate. Retrieval is filtered by repo and file path, raising the prior that returned chunks are relevant neighbors of the diff. For consistency, I’d add a minimal confidence heuristic based on Pinecone similarity; below a threshold, fetch additional context or mark feedback as tentative. I also discourage broad refactors unless justified by concrete changes in the diff. In future, tool-calling to fetch specific symbol definitions on demand would further reduce guesswork. Finally, I’d log representative prompts/outputs to spot patterns of drift and tighten prompts iteratively.
 
-*Pinecone: creating and updating embeddings when code changes*
+## *Pinecone: creating and updating embeddings when code changes*
 
 Initial indexing chunks code per language-aware regex, embeds each chunk with text-embedding-3-small, and upserts vectors with metadata (repo, path, chunk_id, preview, hash). The full text of each chunk is stored in S3 and keyed by the same ID, enabling the review flow to reconstruct complete context from Pinecone matches. On PRs, I extract modified file paths, delete prior vectors for those files, re-chunk current file contents, embed the new chunks, and upsert them back. The local chunk_store is updated and then uploaded to S3, keeping vector IDs, metadata, and full text synchronized. Hashes allow me to skip unchanged content, reducing cost. Today this update phase is sequential; I’d batch and parallelize it. Optimistic concurrency on the S3 store prevents races between simultaneous PRs.
 
-*Pinecone: query strategy for relevant context*
+## *Pinecone: query strategy for relevant context*
 
 For each diff chunk, I compute an embedding and query Pinecone with top_k limited (default 2), include_metadata=True, and a metadata filter that pins to the repo and narrows to paths extracted from the diff. This filter keeps results local to touched files and their neighbors, improving precision and token efficiency. I then resolve match IDs back to full text using the chunk store and concatenate several top matches into the prompt. If similarity scores were exposed and low, I would expand scope from exact paths to directories or modules to capture related utilities. When diffs are small or trivial, retrieval returns few or no matches, and the agent falls back to a minimal-context review. For robustness, I’d add caching for frequent queries and batch queries when processing many chunks. Monitoring hit rates helps tune top_k and filters.
 
-*Pinecone: embedding model choice*
+## *Pinecone: embedding model choice*
 
 I use text-embedding-3-small for its strong cost-to-quality ratio and wide adoption; it’s sufficient for code retrieval at the function/method granularity with concise chunks. Compared to larger embedding models, it keeps token costs low during both indexing and query-time embeddings. The 1,536-d vector size is compatible with Pinecone and performs well in practice for cross-lingual code/text. If evaluations showed retrieval misses, I’d test code-specific models or larger variants and A/B the impact on review quality. I also ensure consistent preprocessing (strip, length threshold) for stable embeddings. The model choice supports scaling without cost spikes on busy repos.
 
-*Why Pinecone over Weaviate/Qdrant*
+## *Why Pinecone over Weaviate/Qdrant*
 
 For a serverless pipeline, Pinecone’s fully managed operations and simple API reduce the operational burden—no cluster sizing, backups, or upgrades. Cold-start Lambda invocations benefit from a hosted endpoint with predictable latency rather than a self-managed vector service. Weaviate and Qdrant are excellent, especially self-hosted or in VPCs, but they add infra complexity (networking, patching, HA) that’s disproportionate for a webhook worker. Pinecone’s metadata filtering and namespaces meet my needs without custom schema wrangling. If I needed on-prem, hybrid, or lower-level control, I’d revisit those options. For cost-sensitive large scale, I’d also benchmark Qdrant’s managed offering. Today, Pinecone’s simplicity and reliability win.
 
-*AWS Lambda: packaging dependencies*
+## *AWS Lambda: packaging dependencies*
 
 I package the service with the AWS Lambda Python base image and install requirements.txt at build time, copying the app and setting the handler to main.handler via Mangum. This yields a predictable, reproducible container compatible with Lambda’s execution environment. Using the Lambda base image avoids glibc or manylinux mismatches that can occur with native deps. If I needed faster cold starts, I’d minimize dependencies, strip unused transitive packages, and consider Lambda Layers for shared libs. For very heavy deps, I’d prebuild wheels and vendor them. The image is small enough for quick deploys while retaining ASGI support.
 
-*AWS Lambda: handling cold starts*
+## *AWS Lambda: handling cold starts*
 
 Cold starts involve container provisioning, module import, and chunk store download; I mitigate user-facing latency by responding to the webhook immediately and doing heavy work in the background task. Provisioned concurrency could keep a small pool warm during business hours, trading small fixed cost for predictable latency. I keep imports lean and defer non-essential initialization until needed (e.g., downloading the chunk store only when processing reviews). For long processes, moving the job to SQS ensures progress even if a container is recycled. Observability tracks cold vs warm invocation times. Tuning memory can reduce cold start time because Lambda allocates CPU proportional to memory.
 
-*AWS Lambda: deployment and monitoring*
+## *AWS Lambda: deployment and monitoring*
 
 I would deploy via a simple CI step building the image, pushing to ECR, and updating the Lambda function; infrastructure can be scripted with SAM/CDK/Terraform. API Gateway integrates with Lambda, and route mapping exposes /review. Monitoring relies on CloudWatch Logs for structured app logs, metrics for invocations/errors/duration, and alarms for error spikes or throttles. X-Ray could trace external calls (OpenAI, Pinecone, GitHub) to identify bottlenecks. Dead-letter queues capture failed invocations for later inspection. For performance, I track review duration and cost estimates to catch regressions.
 
-*AWS Lambda: concurrency model and timeout*
+## *AWS Lambda: concurrency model and timeout*
 
 Concurrency scales per incoming request; I’d set reserved concurrency to a safe number so I don’t overwhelm OpenAI/Pinecone and apply semaphores inside the handler to bound fan-out. The timeout is set to a few minutes to comfortably cover typical PRs; any longer-running work belongs in a queue/worker model. If concurrency bursts exceed external rate limits, retries with exponential backoff and jitter handle transient errors. Provisioned concurrency smooths latency for predictable spikes. I’d log per-file timing to understand saturation points. Backpressure is applied at the per-file review layer.
 
-*FastAPI: endpoint structure*
+## *FastAPI: endpoint structure*
 
 The service exposes GET / for health and POST /review to receive GitHub webhooks. The handler inspects X-GitHub-Event, handles ping quickly, and for pull_request events extracts the action, diff_url, issue_url, and repo metadata. For “opened” events, it schedules a background task to run the orchestration agent and responds immediately to avoid webhook timeouts. Inputs are parsed from the JSON payload; response is a lightweight confirmation message. Errors on unknown events return a benign message without raising 500s. The critical behavior is to decouple webhook responsiveness from review processing.
 
-*FastAPI: async I/O and background tasks*
+## *FastAPI: async I/O and background tasks*
 
 All network I/O (GitHub, OpenAI, Pinecone) is async via httpx and the Agents SDK, enabling concurrency with asyncio.gather across files. BackgroundTasks lets the handler return while the review continues in the same invocation, keeping control simple while avoiding the need for an external queue. Per-file tasks run concurrently; I’d add a semaphore to cap concurrency for rate limits. The orchestrator and summarization are also awaited within the background task. This approach balances responsiveness and simplicity but remains bounded by the Lambda timeout. For higher reliability, I’d promote background work to SQS.
 
-*FastAPI: input validation and error handling*
+## *FastAPI: input validation and error handling*
 
 I validate event type and action and short-circuit non-PR events; malformed payloads would be handled with safe dict access and logged rather than crashed. For production, I’d add Pydantic models for the GitHub payload subset I use, enabling explicit field validation. Downstream API errors are caught and logged with enough context (repo, PR number) to debug. User-facing responses never leak internal errors; instead, the system posts a friendly failure comment if reviews can’t be produced. Idempotency can be enforced with GitHub delivery IDs to avoid double-processing. Structured logging (JSON) makes failures queryable.
 
-*Biggest integration challenges*
+## *Biggest integration challenges*
 
 The hardest parts were getting reliable diff parsing across file types, ensuring retrieval returned truly relevant context, and preventing token bloat. Balancing concurrency to speed up reviews without tripping OpenAI or Pinecone rate limits required careful orchestration. Keeping S3 and Pinecone in sync across updates—and anticipating races from concurrent PRs—forced discipline around deterministic IDs and planned concurrency control. Lambda’s statelessness demanded that I design state flows explicitly, which paid off later for reliability. Prompt design took iteration to reduce verbosity and focus only on impactful changes. Finally, making the system resilient to partial failures (e.g., some file reviews succeed, others fail) was a key design goal.
 
-*Why Pinecone instead of a relational database*
+## *Why Pinecone instead of a relational database*
 
 Relational databases excel at structured queries and transactions, not high-dimensional vector similarity search at scale. Pinecone gives managed, low-latency vector search with metadata filtering and horizontal scaling out of the box. While I could store chunk text in Postgres and run FAISS locally, that complicates serverless deployments and stateful hosting. For Lambda, an external managed vector service simplifies operations and avoids cold-starting an index. The metadata I need (repo, path, chunk_id) maps cleanly to Pinecone filters. If I needed joins, analytical queries, or transactional updates across entities, I’d pair Pinecone with a relational store; here, S3 suffices for chunk text.
 
-*What breaks if OpenAI latency spikes*
+## *What breaks if OpenAI latency spikes*
 
 Longer model latency stretches the per-file review step and can push total processing toward the Lambda timeout, risking abrupt termination before posting comments. High latency also increases the chance of rate-limit retries colliding with timeouts. The summarization step is another single-call bottleneck—if it stalls, no final comment is produced even if all file reviews succeeded. To mitigate, I’d set generous but safe timeouts, add partial-result posting (e.g., per-file comment fallback), and move execution to SQS/Step Functions to decouple duration from API Gateway lifecycles. Caching retrieval and reusing embeddings reduces dependence on LLM calls. Monitoring P95/P99 latency would trigger adaptive concurrency reductions.
 
-*Ensuring consistent embeddings across updates*
+## *Ensuring consistent embeddings across updates*
 
 Consistency comes from deterministic IDs that include file path, chunk index, and content hash, ensuring one unique vector per semantic unit. Before inserting new chunks, I delete existing vectors for the file, then upsert the fresh set; the chunk store is updated in lockstep and uploaded to S3. To avoid races, I’d add versioning or ETag conditions to the S3 upload so parallel updates merge instead of overwriting. Hashes let me skip re-embedding unchanged chunks to reduce drift and cost. Periodic reconciliation can compare Pinecone IDs to the S3 store and repair mismatches. Logging every delete/upsert with counts provides an audit trail.
 
-*Handling OpenAI rate limits*
+## *Handling OpenAI rate limits*
 
 I would wrap API calls with exponential backoff and jitter, detect 429s explicitly, and reduce concurrent requests via a semaphore (adaptive throttling drops concurrency when errors spike). Requests are already sharded per-file; batching smaller files together can reduce call counts. I’d preflight budget and estimated tokens for very large PRs and bail out early with a user-facing message if limits would be exceeded. For throughput, I’d reuse connections and keep prompts lean. If constraints persist, I’d queue overflow work and process asynchronously, posting status updates to the PR.
 
-*Testing locally*
+## *Testing locally*
 
 I test the FastAPI app with pytest and httpx’s AsyncClient to exercise the /review endpoint using recorded GitHub payloads. Diff parsing, file splitting, and path extraction are unit-tested with representative diffs, including binary and rename cases. Retrieval is tested with a local or stubbed Pinecone client and a small synthetic index; OpenAI calls are mocked to return canned reviews and embeddings. For end-to-end testing, I replay a sample PR against a sandbox repo and assert that a comment is posted. I validate error paths by forcing timeouts and 429s to ensure retry and fallback logic behaves. Finally, I add golden-file snapshot tests to keep prompt formats stable.
 
 
-*Verifying AI-generated reviews*
+## *Verifying AI-generated reviews*
 
 I check structural constraints first (conciseness, presence of changed-line references, summary at end). I sample outputs and compare against a rubric: did it prioritize impactful changes, avoid nitpicks, and refrain from fabricating context? I also measure developer feedback: reactions on PR comments and acceptance rate of suggested improvements. For regression, I keep example diffs and expected review characteristics to catch drift from prompt edits. Over time, I’d compute simple quality metrics (e.g., fraction of comments later revised or dismissed). When confidence is low, the agent is instructed to state uncertainty or ask for additional context.
 
-*Handling failed API calls or embedding errors*
+## *Handling failed API calls or embedding errors*
 
 All outbound calls should be wrapped with retries and circuit-breaker semantics; transient failures get exponential backoff, while persistent failures bubble up and trigger a graceful fallback. If a single file review fails, I still proceed with others and annotate the final comment with a note that some files could not be reviewed. If embedding updates fail, I avoid deleting existing vectors until new ones are confirmed inserted to prevent data loss. Errors are logged with correlation IDs (repo/PR/commit) and surfaced via CloudWatch alarms. For repeated failures, I’d add a dead-letter queue to capture jobs for later reprocessing. The guiding principle is partial progress over all-or-nothing.
 
-*Monitoring and logging*
+## *Monitoring and logging*
 
 I emit structured JSON logs with stages (diff_fetch, retrieval, review, summarize, post_comment, embeddings_update), durations, and counts per stage. CloudWatch metrics track invocation count, errors, duration, OpenAI/Pinecone error rates, and similarity-score distributions to gauge retrieval quality. Alarms notify on elevated 4xx/5xx, prolonged durations, or repeated embedding update failures. For tracing, X-Ray can show call graphs and latency hot spots across external services. Cost telemetry estimates tokens per PR and flags outliers. Dashboards summarize P50/P95 review times and success rates.
 
-*Security: handling API keys and environment variables*
+## *Security: handling API keys and environment variables*
 
 Secrets (OpenAI, GitHub, Pinecone) are injected as environment variables provided by AWS Secrets Manager or Parameter Store, with IAM roles granting decrypt/read at runtime. I never log secrets, and any debug logging redacts headers. The Lambda role follows least privilege, allowing only the S3 bucket, Pinecone endpoint, and required network egress. Build pipelines avoid writing secrets to images; they’re bound at deploy time. Local development uses .env but CI prevents committing it. If needed, keys are rotated automatically with Secrets Manager rotation.
 
-*Security: S3 access management*
+## *Security: S3 access management*
 
 The S3 bucket is private, encrypted at rest (SSE-S3 or KMS), and access is limited to the Lambda’s IAM role with resource-level policies. Objects are versioned to enable rollback and to support optimistic concurrency on updates. Server-side encryption and TLS in transit protect the chunk store. Bucket policies restrict public access and enforce TLS. Access logs can be enabled to audit reads/writes. If cross-account access were needed, I’d use bucket policies with condition keys and explicit principals.
 
-*Security: preventing code data leakage*
+## *Security: preventing code data leakage*
 
 The service only fetches diffs and specific files for repos it’s configured to watch, and it never forwards code externally except to OpenAI for processing (documented and opt-in). Logs are scrubbed of code content; only metadata and small snippets (previews) appear, if at all. PR comments avoid reproducing large code blocks; they reference changed lines and explanations instead. I’d add data retention policies that expire temporary artifacts and logs. Network egress can be controlled via VPC endpoints and explicit allowed domains. If required, I could run with a self-hosted model or apply OpenAI’s data control options.
 
-*Scaling to thousands of concurrent PRs*
+## *Scaling to thousands of concurrent PRs*
 
 I’d decouple ingestion from processing with SQS: the webhook handler enqueues a job and returns immediately, and a fleet of worker Lambdas (or Fargate tasks) drains the queue with controlled concurrency. Per-worker concurrency is bounded by semaphores to respect OpenAI/Pinecone limits; autoscaling is driven by queue depth and age. Embedding updates are batched and parallelized, and a cache (e.g., Redis) stores frequent retrieval results to reduce query load. Provisioned concurrency smooths cold starts; Step Functions orchestrate multi-stage flows with retries and compensation. Budget controls estimate per-job token use and throttle or defer expensive jobs. This architecture scales horizontally while protecting dependencies.
 
 
-*Scaling Pinecone queries*
+## *Scaling Pinecone queries*
 
 Batch queries per file or per PR where possible, and reuse query vectors for similar chunks. Apply strict metadata filters to keep top_k small and results precise; widen scope only when confidence is low. Warm up connections and use connection pooling to reduce per-call latency. Cache hot results keyed by (repo, path, hash) for short TTLs, since many PRs touch similar code. Monitor queries-per-second and P95 latency; raise limits or add replicas if needed. If costs rise, compress vectors or prune low-value chunks.
 
-*If the model slows or gets more expensive—optimizations*
+## *If the model slows or gets more expensive—optimizations*
 
 Shift as much work as possible to retrieval and lightweight heuristics (e.g., classify diffs and only deep-review impactful files). Batch per-file reviews where prompts are small, and move summarization to a cheaper or distilled model. Add token-aware truncation and content ranking so only the most relevant context enters the prompt. Cache reviews for unchanged diffs across pushes to the same PR. Negotiate lower latency models or use “mini” variants for file reviews while reserving premium models for summarization. Profile prompts to remove verbosity and reduce token count.
 
-*Extending to automated code fixes*
+## *Extending to automated code fixes*
 
 I’d introduce a “fixer” agent that proposes patch hunks constrained to the diff scope, then validates them with syntax checks and lightweight static analysis. The system would open a suggested-commit PR or push to a feature branch with a checklist of changes. Guardrails would include tests (if present), formatting, and lints, plus a dry-run mode. Retrieval would include style guides and project conventions to fit the repo’s idioms. A human-in-the-loop flow would allow maintainers to accept, edit, or reject suggestions. Over time, feedback would tune prompts and heuristics.
 
-*Proudest part of the project*
+## *Proudest part of the project*
 
 I’m proud of the end-to-end orchestration that keeps latency low while providing meaningful, context-aware reviews. Splitting diffs by file and running parallel reviews delivers near-constant latency regardless of file count, and the RAG layer keeps feedback grounded in the repo. The architecture cleanly separates concerns: ingestion, retrieval, analysis, synthesis, and persistence. It’s also cost-aware—using a cheaper model for file analysis and a stronger model only for final synthesis. The system is pragmatic: it favors partial progress over perfection and degrades gracefully. For a compact codebase, it demonstrates a lot of real-world engineering trade-offs.
 
-*Hardest bug I fixed*
+## *Hardest bug I fixed*
 
 The trickiest issue was ensuring the correct version of files were embedded after updates; an early iteration mistakenly fetched from main rather than the PR head, causing drift between vectors and actual code. This manifested as inconsistent context and confusing reviews that referenced old code. The fix was to pull the head ref or commit SHA from the webhook payload and fetch content by SHA to avoid branch ambiguity. I added logging and assertions around ref resolution to catch regressions. It highlighted how subtle mismatches in data sources can cascade through retrieval to model outputs. It also pushed me to think about idempotency and versioning holistically.
 
-*If I had another month, what would I improve?*
+## *If I had another month, what would I improve?*
 
 I’d productionize reliability: queue-based orchestration, retries/backoff everywhere, and optimistic concurrency for the S3 store. I’d switch Python chunking to AST or tree-sitter for more accurate semantic units and expand language coverage. The embedding pipeline would be batched and parallel, with caching and scheduled rebuilds. I’d add robust observability—dashboards for latency, cost, retrieval quality, and review usefulness—and A/B tests for top_k and prompt variants. Adaptive throttling would protect against rate limits dynamically. Finally, I’d explore auto-fixes with patch proposals and validation, moving from reviewer to co-author.
 
-*What I learned about working with LLM APIs*
+## *What I learned about working with LLM APIs*
 
 LLM systems reward careful scoping: focused prompts, small context, and tight instructions beat dumping everything into a giant prompt. Retrieval quality dominates output usefulness; a little precision in filters and chunking pays off more than model swapping. Latency and rate limits shape architecture—you need concurrency caps, batching, retries, and sometimes queues to stay robust. Deterministic IDs and idempotency are essential when multiple components (S3, Pinecone, GitHub) must remain consistent. Observability is non-negotiable; without timings and structured logs, you’re flying blind. Finally, designing for partial success and graceful degradation makes agentic systems feel dependable to end users.
 
-Notes:
+### Notes:
 
 I prepared way more than necessary. They asked decently basic questions, just a general walkthrough of the project end-to-end. I did well in explaining it as I went, and answered nearly all of their questions unknowingly through my in-depth explanations 
