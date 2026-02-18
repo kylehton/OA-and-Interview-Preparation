@@ -23,6 +23,7 @@ Review these concepts before heading into solving the problem set.
 ### 2. Core Commands
 
 | Command | Purpose |
+|------------|----------|
 | `ls -la` | List all files (including hidden) |
 | `cd path/` | Change directory |
 | `pwd` | Print working directory |
@@ -41,7 +42,7 @@ with open(filepath, "r") as file:
     for line in file:
         line = line.strip().split()
 ```
-**Tips:** Always check token count and validate input
+**Tips:** Always check token count and validate input.
 
 ### 2. Basic File Writing
 ```python
