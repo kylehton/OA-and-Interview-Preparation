@@ -5,7 +5,7 @@
 2. Two Pointers: 3/5 (1 easy, 2 medium)
 3. Sliding Window 3/6 (1 easy, 2 medium)
 4. Stack: 4/6 (1 easy, 3 medium)
-5. Binary Search: 4/7 (1 easy, 3 medium)
+5. Binary Search: 5/7 (1 easy, 4 medium)
 6. Linked List: 7/11 (3 easy, 4 medium)
 7. Trees: 10/15 (6 easy, 4 medium)
 8. Heap/Priority Queue: 5/7 (2 easy, 3 medium)
@@ -22,7 +22,7 @@
 
 Total per Difficulty Level:
 - Easy: 24
-- Medium: 41
+- Medium: 42
 - Hard: 0
 
-***Progress: 65/150***
+***Progress: 66/150***
