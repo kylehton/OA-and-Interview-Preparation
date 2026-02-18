@@ -42,72 +42,85 @@ Every problem:
 # Problem Set Concept Coverage
 
 P01 — Log Error Rate Aggregator
-Concepts:
+
+**Concepts:**
 Streaming file I/O, defensive parsing, dictionary aggregation, floating-point rounding, sorting with multi-key rules.
 Why it matters: Simulates real-world service error tracking and log-based reliability metrics.
 
 P02 — Top-K IPs
-Concepts:
+
+**Concepts:**
 Frequency counting, heap usage (heapq), tie-breaking sorting rules, memory-efficient streaming.
 Why it matters: Tests your ability to compute top-K efficiently without full in-memory sorting.
 
 P03 — Rolling SLO Breach Detector
-Concepts:
+
+**Concepts:**
 Sliding window algorithm, deque usage, timestamp parsing (datetime), rolling metrics, strict inequality logic.
 Why it matters: Directly mirrors SRE-style SLO monitoring and alerting systems.
 
 P04 — REST Pagination + Deduplication
-Concepts:
+
+**Concepts:**
 Iterative API traversal, cycle detection, deduplication using sets, order preservation, defensive API handling.
 Why it matters: Models real-world REST client logic and production pagination bugs.
 
 P05 — Rate Limiter (OOP)
-Concepts:
+
+**Concepts:**
 Sliding window logic, amortized O(1) operations, timestamp math, queue/deque management, stateful object design.
 Why it matters: Classic SRE infrastructure logic (rate limiting, request throttling).
 
 P06 — Retry with Exponential Backoff
-Concepts:
+
+**Concepts:**
 Exception handling, retry loops, exponential growth patterns, injected dependencies (sleep_fn), jitter logic.
 Why it matters: Real-world distributed system reliability pattern.
 
 P07 — Dependency Outage Graph
-Concepts:
+
+**Concepts:**
 Graph construction from file input, reverse dependency traversal (BFS/DFS), cycle detection (DFS coloring or visited sets).
 Why it matters: Models service dependency graphs and blast-radius reasoning.
 
 P08 — P95 Latency
-Concepts:
+
+**Concepts:**
 Percentile calculation (nearest-rank method), sorting logic, grouping by key, heap optimization discussion.
 Why it matters: Common reliability metric computation in monitoring systems.
 
 P09 — Merge Downtime Intervals
-Concepts:
+
+**Concepts:**
 Interval sorting and merging, edge case handling (adjacent intervals), per-key grouping.
 Why it matters: Models downtime aggregation and incident window consolidation.
 
 P10 — Streaming Unique Users
-Concepts:
+
+**Concepts:**
 Memory-aware streaming, set usage, frequency counting, top-K with custom sorting.
 Why it matters: Tests handling large event streams efficiently.
 
 P11 — File Cleanup (OS + Datetime)
-Concepts:
+
+**Concepts:**
 os.walk, file metadata (os.stat), epoch timestamp math, recursive traversal, safe deletion logic.
 Why it matters: Practical SRE scripting + Linux familiarity.
 
 P12 — Service Monitor (OOP + Thread Safety)
-Concepts:
+
+**Concepts:**
 Encapsulation, internal state management, multi-criteria sorting, rounding consistency, thread synchronization (locks).
 Why it matters: Simulates production monitoring components and concurrency awareness.
 
 P13 — HTTP Route Normalization
-Concepts:
+
+**Concepts:**
 String parsing, path normalization, pattern detection (numeric segments), HTTP status bucketing, aggregation.
 Why it matters: Realistic API analytics processing task.
 
 P14 — API Rate Limit Simulation
-Concepts:
+**Concepts:**
 Multi-file joins, timestamp arithmetic, deduplication rules, stable sorting, stateful simulation.
 Why it matters: Combines REST reasoning with log-based event scheduling.
 
@@ -144,7 +157,7 @@ pytest -q
 
 ---
 
-# Weekly High-Intensity Plan
+# 1 Week Preparation Plan
 
 ## Day 1–2
 - P01
