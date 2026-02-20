@@ -30,4 +30,5 @@ Same traversal but return ids only (deduped, first occurrence order).
 
 ## Constraints
 - Must not loop forever if API returns a previously seen token (cycle).
+
   If a token repeats, stop and raise ValueError("pagination cycle").

@@ -1,5 +1,9 @@
 import tempfile
-from p14_api_rate_limit_sim.solution import schedule_retries, dedupe_latest_retry
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from solution import schedule_retries, dedupe_latest_retry
 
 
 def _tmpfile(content: str) -> str:

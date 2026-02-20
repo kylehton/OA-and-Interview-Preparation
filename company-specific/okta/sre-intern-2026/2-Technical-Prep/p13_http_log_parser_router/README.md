@@ -5,7 +5,9 @@ File format per line:
     <method> <path> <status>
 
 Examples:
+
     GET /api/v1/users 200
+
     POST /api/v1/login 401
 
 Implement:
@@ -15,6 +17,7 @@ Implement:
 Normalize routes by replacing numeric path segments with "{id}".
 
 Example:
+
     /api/v1/users/123/profile  -> /api/v1/users/{id}/profile
 
 Return:

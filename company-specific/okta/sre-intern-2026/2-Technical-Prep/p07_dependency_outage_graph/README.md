@@ -5,10 +5,13 @@ File format: each non-empty line is:
     <serviceA> -> <serviceB>
 
 Meaning: serviceA depends on serviceB.
+
 If serviceB is down, serviceA is impacted (and any services that depend on serviceA, etc).
 
 Example:
+
     api -> auth
+
     auth -> db
 
 If db fails, impacted are: auth, api

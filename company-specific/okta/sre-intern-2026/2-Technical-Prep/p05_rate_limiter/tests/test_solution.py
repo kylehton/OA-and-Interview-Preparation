@@ -1,4 +1,8 @@
-from p05_rate_limiter.solution import RateLimiter
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from solution import RateLimiter
 
 
 def test_basic_same_second():

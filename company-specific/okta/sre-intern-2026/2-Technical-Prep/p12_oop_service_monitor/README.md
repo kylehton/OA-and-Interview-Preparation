@@ -5,8 +5,11 @@ Design a small monitoring component.
 Implement:
 
     class ServiceMonitor:
+
         record(service: str, status_code: int) -> None
+
         error_rate(service: str) -> float
+
         top_unhealthy(n: int) -> list[tuple[str,float]]
 
 Rules:

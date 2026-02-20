@@ -5,8 +5,11 @@ File format:
     <service> <latency_ms>
 
 Example:
+
     auth 10
+
     auth 20
+
     auth 30
 
 ## Task

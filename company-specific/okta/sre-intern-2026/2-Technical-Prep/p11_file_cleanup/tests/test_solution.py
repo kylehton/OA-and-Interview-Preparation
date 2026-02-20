@@ -1,8 +1,11 @@
 import os
 import tempfile
 import time
+import sys
+import os
 
-from p11_file_cleanup.solution import list_old_files, delete_old_files
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from solution import list_old_files, delete_old_files
 
 
 def _touch(path: str, mtime: float) -> None:

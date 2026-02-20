@@ -5,6 +5,7 @@ Implement a per-instance rate limiter:
     RateLimiter(max_requests: int, window_seconds: int)
 
 Method:
+
     allow(timestamp: int) -> bool
 
 `timestamp` is an integer seconds since epoch (monotonic non-decreasing calls are NOT guaranteed).
@@ -22,6 +23,7 @@ At times: 10 (allow), 10 (allow), 10 (reject), 12 (allow)
 - Window at T=10 is [8..10] includes 2 allowed -> reject third
 - Window at T=12 is [10..12] includes allowed at 10,10 (2) so would reject if counted,
   but window_seconds=3 => [10..12] includes both -> actually still 2, so allow would be False.
+
 Careful! This is why the exact bounds matter.
 
 Use the defined bounds above.

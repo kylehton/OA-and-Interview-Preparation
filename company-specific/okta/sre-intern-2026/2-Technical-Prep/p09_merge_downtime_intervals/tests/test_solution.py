@@ -1,5 +1,9 @@
 import tempfile
-from p09_merge_downtime_intervals.solution import merge_downtime, total_downtime_seconds
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from solution import merge_downtime, total_downtime_seconds
 
 
 def _tmpfile(content: str) -> str:

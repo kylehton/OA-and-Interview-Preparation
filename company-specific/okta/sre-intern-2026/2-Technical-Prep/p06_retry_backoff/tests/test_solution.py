@@ -1,5 +1,9 @@
 import pytest
-from p06_retry_backoff.solution import retry, retry_with_jitter
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from solution import retry, retry_with_jitter
 
 
 def test_retry_succeeds_after_failures():

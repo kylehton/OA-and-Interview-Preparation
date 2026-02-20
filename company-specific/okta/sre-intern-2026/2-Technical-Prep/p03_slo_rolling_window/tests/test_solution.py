@@ -1,5 +1,9 @@
 import tempfile
-from p03_slo_rolling_window.solution import first_slo_breach
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from solution import first_slo_breach
 
 
 def _tmpfile(content: str) -> str:

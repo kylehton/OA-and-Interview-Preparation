@@ -5,7 +5,9 @@ Input file format per line:
     <service> <start> <end>
 
 Where start and end are integer seconds since epoch.
+
 Intervals are inclusive: [start, end]
+
 Assume start <= end.
 
 ## Task
@@ -28,5 +30,7 @@ Invalid lines ignored:
 
 ## Follow-up
 Implement:
+
     total_downtime_seconds(merged: dict) -> dict[str, int]
+
 Total downtime per service = sum(end-start+1).

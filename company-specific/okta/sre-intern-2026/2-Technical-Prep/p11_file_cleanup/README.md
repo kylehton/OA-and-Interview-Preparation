@@ -18,6 +18,7 @@ Implement:
     delete_old_files(root_dir: str, older_than_days: int, dry_run: bool = True, now_ts: float | None = None) -> list[str]
 
 Delete the same set of files if dry_run=False.
+
 Return the list of files that would be (or were) deleted, sorted.
 
 Constraints:

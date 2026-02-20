@@ -1,5 +1,9 @@
 import tempfile
-from p13_http_log_parser_router.solution import route_stats, top_routes_by_5xx
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from solution import route_stats, top_routes_by_5xx
 
 
 def _tmpfile(content: str) -> str:

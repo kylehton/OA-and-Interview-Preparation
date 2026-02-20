@@ -1,5 +1,9 @@
 import tempfile
-from p07_dependency_outage_graph.solution import impacted_services, has_cycle
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from solution import impacted_services, has_cycle
 
 
 def _tmpfile(content: str) -> str:

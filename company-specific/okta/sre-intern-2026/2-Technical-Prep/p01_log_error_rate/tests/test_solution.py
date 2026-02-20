@@ -1,5 +1,9 @@
 import tempfile
-from p01_log_error_rate.solution import compute_error_rate, services_by_error_rate
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from solution import compute_error_rate, services_by_error_rate
 
 
 def _tmpfile(content: str) -> str:

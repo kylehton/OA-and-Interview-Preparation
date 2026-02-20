@@ -24,6 +24,7 @@ Implement:
 
 Where delay is:
     base_delay * (2 ** attempt_index) + jitter_fn()
+    
 jitter_fn returns a float (can be 0).
 
 ## Notes

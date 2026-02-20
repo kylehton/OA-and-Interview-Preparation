@@ -1,5 +1,9 @@
 import threading
-from p12_oop_service_monitor.solution import ServiceMonitor, ThreadSafeServiceMonitor
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from solution import ServiceMonitor, ThreadSafeServiceMonitor
 
 
 def test_basic_monitor():

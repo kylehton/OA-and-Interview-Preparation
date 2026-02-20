@@ -1,5 +1,9 @@
 import tempfile
-from p02_topk_ips.solution import top_k_ips
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from solution import top_k_ips
 
 
 def _tmpfile(content: str) -> str:

@@ -6,6 +6,7 @@ You are given an access log file where each non-empty line is:
 
 Example:
     2026-02-17T10:00:00 auth-service 200
+    
     2026-02-17T10:00:01 auth-service 500
 
 ## Task

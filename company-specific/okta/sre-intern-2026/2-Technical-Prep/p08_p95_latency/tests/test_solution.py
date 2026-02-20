@@ -1,5 +1,9 @@
 import tempfile
-from p08_p95_latency.solution import p95_latency, top_p95_services
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from solution import p95_latency, top_p95_services
 
 
 def _tmpfile(content: str) -> str:

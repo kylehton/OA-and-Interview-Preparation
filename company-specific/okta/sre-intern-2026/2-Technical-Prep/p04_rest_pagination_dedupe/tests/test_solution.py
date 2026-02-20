@@ -1,4 +1,8 @@
-from p04_rest_pagination_dedupe.solution import fetch_all_items, fetch_all_ids
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from solution import fetch_all_items, fetch_all_ids
 
 
 def test_basic_pagination_and_dedupe():

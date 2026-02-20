@@ -5,6 +5,7 @@ You are given a log file with lines:
     <iso8601_timestamp> <service> <status_code>
 
 Timestamps are ISO8601 like: 2026-02-17T10:05:30
+
 All timestamps are in UTC and are non-decreasing in the file.
 
 ## Task

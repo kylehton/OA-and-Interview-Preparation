@@ -1,5 +1,9 @@
 import tempfile
-from p10_stream_unique_users.solution import count_unique_users, top_active_users
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from solution import count_unique_users, top_active_users
 
 
 def _tmpfile(content: str) -> str:
