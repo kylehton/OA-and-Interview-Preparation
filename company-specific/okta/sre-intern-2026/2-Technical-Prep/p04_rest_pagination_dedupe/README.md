@@ -7,6 +7,9 @@ You are given a `fetch_page(page_token)` function (provided by tests) that retur
       "next": str | None
     }
 
+    NOTE: "id" does not denote the field for a unique id. It directly corresponds to the item id.
+    No item value/content is provided, only a dictionary of the ids of items for the page.
+
 Rules:
 - Start by calling `fetch_page(None)` (first page).
 - Continue calling with the returned `"next"` token until it is None.
