@@ -1,52 +1,116 @@
- # P01 — Log Error Rate Aggregator (File I/O + Parsing)
+# P01 — Log Error Rate Aggregator (File I/O + Parsing)
 
 You are given an access log file where each non-empty line is:
 
     <iso8601_timestamp> <service> <status_code>
 
 Example:
+
     2026-02-17T10:00:00 auth-service 200
-    
     2026-02-17T10:00:01 auth-service 500
 
-## Task
+---
+
+## Task 1 — Compute Error Rate Per Service
 
 Implement:
 
-    compute_error_rate(filepath: str) -> dict[str, float]
+```python
+compute_error_rate(filepath: str) -> dict[str, float]
+```
 
-Return a mapping of service -> error rate, where:
-- total requests = number of valid lines for that service
-- error requests = status_code >= 500
-- error rate = error / total
-- round to 4 decimal places (e.g., 0.3333)
+### Rules
 
-### Validity rules
-A line is **valid** only if:
-- it splits into exactly 3 tokens by whitespace
-- status_code is an integer
-- service is a non-empty string
+A line is valid only if:
 
-Invalid lines must be ignored.
+- It splits into exactly 3 tokens
+- `status_code` is an integer
+- `service` is non-empty
 
-### Output rules
-- If a service has 0 valid lines, it must not appear in output.
-- Return a normal dict (order not required).
+For each service:
 
-## Follow-up (implemented as separate function)
+- total = number of valid lines
+- errors = count where `status_code >= 500`
+- error_rate = errors / total
+- Round to **4 decimal places**
+
+If a service has 0 valid lines → it must not appear.
+
+Process file line-by-line (large file safe).
+
+---
+
+## Example Runthrough
+
+**Input:**
+```python
+2026-02-17T10:00:00 auth 200
+2026-02-17T10:00:01 auth 500
+2026-02-17T10:00:02 billing 503
+2026-02-17T10:00:03 billing 200
+bad line
+```
+
+**Output:**
+```python
+{
+    "auth": 0.5,
+    "billing": 0.5
+}
+# auth: 1 error / 2 total = 0.5
+# billing: 1 error / 2 total = 0.5
+# invalid lines ignored
+```
+
+---
+
+## Task 2 — Services Sorted by Error Rate
 
 Implement:
 
-    services_by_error_rate(filepath: str) -> list[tuple[str, float]]
+```python
+services_by_error_rate(filepath: str) -> list[tuple[str, float]]
+```
 
-Return a list of (service, error_rate) sorted by:
-1) descending error_rate
-2) if tie: descending total_requests
-3) if tie: lexicographically ascending service name
+Return list of `(service, error_rate)` sorted by:
 
-## Constraints
-- File can be large: process line-by-line (do not read entire file into memory).
-- O(n) time, O(#services) memory.
+1. error_rate descending  
+2. total_requests descending  
+3. service lexicographically ascending  
+
+---
+
+## Example Runthrough (Sorted)
+
+**Input:**
+```python
+2026-02-17T10:00:00 auth 200
+2026-02-17T10:00:01 auth 500
+2026-02-17T10:00:02 billing 503
+2026-02-17T10:00:03 billing 200
+2026-02-17T10:00:04 billing 503
+```
+
+**Output:**
+```python
+[("billing", 0.6667), ("auth", 0.5)]
+# billing: 2 errors / 3 total = 0.6667
+# auth: 1 / 2 = 0.5
+# sorted by error_rate desc
+```
+
+---
 
 ## Notes
-- Timestamp does not need to be validated beyond being a token.
+
+- Use a dictionary like:
+  ```
+  { service: [total_count, error_count] }
+  ```
+- Round with:
+  ```
+  round(errors / total, 4)
+  ```
+- Time complexity: O(n)
+- Memory: O(#services)
+- Timestamp does not need validation beyond being a token.

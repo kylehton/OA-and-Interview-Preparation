@@ -1,37 +1,111 @@
 # P07 — Dependency Outage Impact (Graph Traversal + Parsing)
 
-File format: each non-empty line is:
+Each non-empty line in the file has the format:
 
     <serviceA> -> <serviceB>
 
-Meaning: serviceA depends on serviceB.
-
-If serviceB is down, serviceA is impacted (and any services that depend on serviceA, etc).
+Meaning:
+- `serviceA` depends on `serviceB`.
+- If `serviceB` fails, `serviceA` is impacted.
+- Impact propagates transitively (dependents of dependents, etc).
 
 Example:
 
     api -> auth
-
     auth -> db
 
-If db fails, impacted are: auth, api
+If `db` fails → impacted services are: `auth`, `api`
 
-## Task
+---
+
+## Task 1 — Find Impacted Services
 
 Implement:
 
-    impacted_services(filepath: str, failed: str) -> list[str]
+```python
+impacted_services(filepath: str, failed: str) -> list[str]
+```
 
-Return all impacted services (excluding `failed`) sorted lexicographically.
+### Requirements
 
-Rules:
-- Ignore invalid lines (must match pattern "<a> -> <b>" with tokens separated by spaces)
-- Services are case-sensitive.
-- Graph may contain cycles. Must not infinite-loop.
+- Return all services impacted by `failed`
+- Do NOT include `failed` itself
+- Return results sorted lexicographically
+- Ignore invalid lines (must exactly match: `<a> -> <b>` with spaces)
+- Services are case-sensitive
+- Graph may contain cycles (must not infinite-loop)
 
-## Follow-up
+---
+
+## Example Runthrough
+
+**Input:**
+```python
+# file contents:
+api -> auth
+auth -> db
+frontend -> api
+invalid_line
+auth->db   # invalid (no spaces)
+
+failed = "db"
+```
+
+**Output:**
+```python
+["api", "auth", "frontend"]
+# db fails
+# auth depends on db
+# api depends on auth
+# frontend depends on api
+# invalid lines ignored
+# sorted lexicographically
+```
+
+---
+
+## Task 2 — Detect Cycle
+
 Implement:
 
-    has_cycle(filepath: str) -> bool
+```python
+has_cycle(filepath: str) -> bool
+```
 
-Return True if dependency graph contains any cycle.
+Return:
+- True if the dependency graph contains ANY cycle
+- False otherwise
+
+Must correctly handle:
+- Multi-node cycles
+- Self-dependency
+- Disconnected components
+
+---
+
+## Example Runthrough (Cycle Detection)
+
+**Input:**
+```python
+# file contents:
+api -> auth
+auth -> db
+db -> api
+```
+
+**Output:**
+```python
+True
+# api -> auth -> db -> api forms a cycle
+```
+
+---
+
+## Notes
+
+- Build graph as: dependency -> dependents (reverse edges) for impact propagation.
+- Use BFS or DFS with a visited set to avoid infinite loops.
+- For cycle detection, use:
+  - DFS with recursion stack tracking, OR
+  - Kahn’s algorithm (topological sort).
+- Time complexity: O(V + E)

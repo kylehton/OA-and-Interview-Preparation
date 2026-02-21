@@ -16,8 +16,23 @@ Allow rules:
 - If allowed, it counts toward future windows.
 - If rejected, it does NOT count.
 
-## Examples
-max_requests=2, window_seconds=3
+## Example Runthrough
+
+**Input:**
+```python
+10
+10
+10
+12
+
+max_requests = 2
+window_seconds = 3
+```
+
+**Output:**
+```python
+[True, True, False, False]  # [8..10], [8..10], [8..10], [10..12] -> counts 0/1/2/2 (max=2)
+```
 
 At times: 10 (allow), 10 (allow), 10 (reject), 12 (allow)
 - Window at T=10 is [8..10] includes 2 allowed -> reject third
@@ -29,5 +44,4 @@ Careful! This is why the exact bounds matter.
 Use the defined bounds above.
 
 ## Requirements
-- Must be efficient: amortized O(1) per call is expected.
 - You may assume timestamps are non-negative.
