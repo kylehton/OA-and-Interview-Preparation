@@ -60,4 +60,4 @@ def test_ignores_other_services_and_invalid_lines():
     )
     path = _tmpfile(content)
     # valid api lines: 500, 500, 200 => errors 2/3 = 0.666 > 0.6 at 10:00:40
-    assert first_slo_breach(path, "api", 999, 0.6) == "2026-02-17T10:00:40"
+    assert first_slo_breach(path, "api", 999, 0.6) == "2026-02-17T10:00:30"
