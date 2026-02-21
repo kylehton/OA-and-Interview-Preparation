@@ -29,7 +29,6 @@ def top_k_ips(filepath: str, k: int) -> List[str]:
     while len(result) < k:
         if heap:
             item = heapq.heappop(heap)
-            print(item)
             result.append(item[1])
         else:
             break
