@@ -34,3 +34,29 @@ def test_cycles_do_not_infinite_loop():
 def test_has_cycle_false():
     path = _tmpfile("\n".join(["a -> b", "b -> c", "c -> d"]))
     assert has_cycle(path) is False
+
+def test_has_cycle_disconnected_component():
+    path = _tmpfile(
+        "\n".join(
+            [
+                # Component 1 (has cycle)
+                "a -> b",
+                "b -> a",
+                # Component 2 (acyclic, appears last)
+                "x -> y",
+                "y -> z",
+            ]
+        )
+    )
+    assert has_cycle(path) is True
+
+def test_self_cycle():
+    path = _tmpfile("a -> a")
+    assert has_cycle(path) is True
+
+def test_disconnected_no_cycle():
+    path = _tmpfile("\n".join([
+        "a -> b",
+        "c -> d",
+    ]))
+    assert has_cycle(path) is False
