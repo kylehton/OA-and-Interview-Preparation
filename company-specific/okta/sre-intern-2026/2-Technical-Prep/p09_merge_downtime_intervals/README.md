@@ -7,7 +7,7 @@ Each non-empty line in the file has the format:
 Where:
 - `start` and `end` are integer seconds since epoch
 - Intervals are **inclusive**: `[start, end]`
-- Assume `start <= end` for valid intervals
+- Assume `start <= end` for valid intervals (there may be invalid intervals provided in input)
 
 ---
 
@@ -83,6 +83,8 @@ sum(end - start + 1)
 ```
 
 Because intervals are inclusive.
+
+**Note:** Intervals in parameters are not guaranteed to be sorted.
 
 ---
 

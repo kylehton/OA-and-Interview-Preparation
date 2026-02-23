@@ -29,6 +29,19 @@ def test_merge_overlap_and_adjacent():
     totals = total_downtime_seconds(merged)
     assert totals["a"] == (13 - 10 + 1) + (30 - 20 + 1)
 
+def test_out_of_order_intervals():
+    path = _tmpfile("\n".join([
+        "a 20 25",
+        "a 1 5",
+        "a 6 10",
+    ]))
+
+    merged = merge_downtime(path)
+
+    # Correct result should merge 1-5 and 6-10 (adjacent),
+    # and keep 20-25 separate.
+    assert merged["a"] == [(1, 10), (20, 25)]
+
 
 def test_multiple_services_and_invalid_lines():
     content = "\n".join(
@@ -45,3 +58,25 @@ def test_multiple_services_and_invalid_lines():
     merged = merge_downtime(path)
     assert merged == {"a": [(1, 2)], "b": [(10, 10)]}
     assert total_downtime_seconds(merged) == {"a": 2, "b": 1}
+
+def test_cascading_merge():
+    path = _tmpfile("\n".join([
+        "a 1 3",
+        "a 5 7",
+        "a 2 6",   # overlaps both previous intervals
+    ]))
+
+    merged = merge_downtime(path)
+    # Correct result should be single merged interval:
+    assert merged["a"] == [(1, 7)]
+
+def test_cascade_break():
+    path = _tmpfile("\n".join([
+        "a 2 6",
+        "a 1 3",
+        "a 5 7",
+    ]))
+
+    merged = merge_downtime(path)
+
+    assert merged["a"] == [(1, 7)]
