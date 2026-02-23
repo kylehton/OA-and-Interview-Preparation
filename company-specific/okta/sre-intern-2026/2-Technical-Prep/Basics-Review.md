@@ -130,7 +130,7 @@ from collections import deque
 
 queue = deque()
 queue.append(x)
-queue.popleft()
+queue.popleft() # O(1) -> deque, O(n) -> list; This is because a deque is implemented as a doubly linked list
 ```
 
 ### 2. heapq Module
@@ -138,9 +138,14 @@ queue.popleft()
 import heapq
 
 heap = []
-heapq.heapify(heap)
-heapq.heappush(heap, value)
-heapq.heappop(heap)
+heapq.heapify(heap) # O(n)
+heapq.heappush(heap, value) # O(log n)
+heapq.heappop(heap) # O(log n)
+
+# Both functions below sort using the key/sort order, but return the sort through its ORIGINAL items
+heapq.nsmallest(n, heap, key=sorting_order) # O(n log n)
+heapq.nlargest(n, heap, key=sorting_order) # O(n log n)
+
 ```
 *Tip:* If using tuples, heap ordering is by item, left to right
 
@@ -148,7 +153,7 @@ heapq.heappop(heap)
 
 ## Lambda Function Sort
 ```python
-sorted(items, key=lambda x: (-x[1], x[0]))
+sorted(items, key=lambda x: (-x[1], x[0])) # O(n log n)
 # sorts first descending by value at x[1] (assuming numerical)
 # then ascending by value at x[0] (by same assumption)
 ```
@@ -189,9 +194,25 @@ queue = deque(start)
 visited = set(start)
 while queue:
     node = queue.popleft()
+    # implement logic here
     for neighbor in graph[node]:
         if neighbor not in visited:
             queue.append(neighbor)
+            visited.add(neighbor)
+```
+
+### 4. Graph DFS
+```python
+stack = []
+stack.append(start)
+visited = set(start)
+
+while stack:
+    node = stack.pop()
+    # implement logic here
+    for neighbor in graph[node]:
+        if neighbor not in visited:
+            stack.append(neighbor)
             visited.add(neighbor)
 ```
 
