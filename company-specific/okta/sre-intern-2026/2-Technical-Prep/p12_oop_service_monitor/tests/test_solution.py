@@ -3,7 +3,7 @@ import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from solution import ServiceMonitor, ThreadSafeServiceMonitor
+from solution import ServiceMonitor
 
 
 def test_basic_monitor():
@@ -46,19 +46,3 @@ def test_ties_by_total_then_name():
     assert m.top_unhealthy(3) == [("a", 0.5), ("c", 0.5), ("b", 0.3333)]
 
 
-def test_thread_safe_monitor_smoke():
-    m = ThreadSafeServiceMonitor()
-
-    def worker():
-        for _ in range(500):
-            m.record("api", 500)
-            m.record("api", 200)
-
-    threads = [threading.Thread(target=worker) for _ in range(10)]
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
-
-    # Expect ~50% error rate
-    assert m.error_rate("api") == 0.5

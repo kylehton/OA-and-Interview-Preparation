@@ -77,29 +77,6 @@ monitor.top_unhealthy(2)
 
 ---
 
-## Follow-up — Thread-Safe Version
-
-Implement:
-
-```python
-class ThreadSafeServiceMonitor(ServiceMonitor):
-    ...
-```
-
-### Requirements
-
-- Same public interface
-- Must be safe under concurrent calls
-- Use a lock to guard shared state
-- Ensure all:
-  - record()
-  - error_rate()
-  - top_unhealthy()
-  
-  are thread-safe
-
----
-
 ## Notes
 
 - Use a dictionary like:
@@ -110,10 +87,3 @@ class ThreadSafeServiceMonitor(ServiceMonitor):
   ```
   round(errors / total, 4)
   ```
-- For thread safety:
-  - Use `threading.Lock`
-  - Acquire lock around state reads/writes
-- Time complexity:
-  - record → O(1)
-  - error_rate → O(1)
-  - top_unhealthy → O(n log n)
