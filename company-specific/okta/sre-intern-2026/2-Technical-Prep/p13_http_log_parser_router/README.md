@@ -21,13 +21,13 @@ route_stats(filepath: str) -> dict[str, dict[str, int]]
 
 ### Normalization Rule
 
-Replace numeric path segments with `{id}`.
+Replace numeric path segments with the string `{id}`.
 
 Example:
 
 ```
 /api/v1/users/123/profile
-→ /api/v1/users/{id}/profile
+→ /api/v1/users/{id}/profile # {id} is a string literal
 ```
 
 Only segments that are **pure digits** should be replaced.
