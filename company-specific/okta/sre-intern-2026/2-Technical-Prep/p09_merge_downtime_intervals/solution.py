@@ -12,7 +12,7 @@ def merge_downtime(filepath: str) -> Dict[str, List[Tuple[int, int]]]:
             parts = line.strip().split()
             if len(parts) == 3:
                 service = parts[0].strip()
-                if parts[1].strip().isnumeric() and parts[2].strip().isnumeric():
+                if parts[1].strip().isnumeric() and parts[2].strip().isnumeric() and int(parts[2]) > 0:
                     start = int(parts[1].strip())
                     end = int(parts[2].strip())
                     if (start <= end):
@@ -35,8 +35,6 @@ def merge_downtime(filepath: str) -> Dict[str, List[Tuple[int, int]]]:
 
 def total_downtime_seconds(merged: Dict[str, List[Tuple[int, int]]]) -> Dict[str, int]:
     total_seconds = {}
-    for service, interval_list in merged.items():
-        interval_list.sort()
     for service, interval_list in merged.items():
         curr_sum = 0
         for start, end in interval_list:

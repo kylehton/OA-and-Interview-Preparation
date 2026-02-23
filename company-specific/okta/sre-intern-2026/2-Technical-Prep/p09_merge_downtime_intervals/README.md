@@ -84,7 +84,7 @@ sum(end - start + 1)
 
 Because intervals are inclusive.
 
-**Note:** Intervals in parameters are not guaranteed to be sorted.
+**Note:** Intervals in parameter *merged* are based on your implementation of *merge_downtime* function. (Guarantees sorted order)
 
 ---
 

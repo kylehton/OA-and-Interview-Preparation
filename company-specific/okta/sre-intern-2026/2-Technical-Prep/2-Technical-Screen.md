@@ -255,4 +255,13 @@ Be ready to discuss:
 
 ---
 
+## **Notes After Completion:**
 
+### Review: p06, p07, p09
+
+p06: Had difficulty with getting different errors, need to remember all non exit errors fall under exceptions, so use try-catch
+
+p07: Need to review DFS/BFS. Had difficulty with has_cycle function
+
+p09: Took a while to get a working solution with interval merging. Need to review algorithm and get better and problem splitting
+to make the problem easier to track progress and solve
