@@ -88,3 +88,17 @@ SRE-specific:
 8. What is rate limiting?  
 9. What is exponential backoff?  
 10. What happens during a cascading failure?  
+
+# **Questions After Technical**
+
+1. In your experience, what kinds of manual operational work have you been able to eliminate through automation?
+
+2. How does working across multiple cloud providers affect reliability strategies? Does it make things more complex, or are they similar enough to be somewhat generalized and redundant?
+
+3. How do engineers collaborate, and what kind of internal tools does Okta lean towards to help in productivity and collaboration between supporting engineers?
+
+4. What incidents happen in high-compliance environments, how does that change current practices in observability and such?
+
+5. For someone early in their career interested in backend infrastructure and reliability, what skills and/or habits make the biggest difference in how well they do within the team?
+
+6. I saw Okta operates at FedRAMP High, how does that change the way site reliability engineering works compared to commercial or personal usage environments?
