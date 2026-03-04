@@ -18,7 +18,7 @@ Throughout my internships and personal projects, I started realizing that the pa
 2. Tell me about a time that something broke.  
     During a push/merge with changes made from one of the software engineers, the login system broke. I was the first one to notice this, and so I immediately worked on finding the issue. The change was from a refactoring of user data storage in cookies, changed to session storage. Given the deployment did not yet exist, there were no traces or logs to work with, so I ended up tracing the login flow by hand through the functions and files in the codebase. Eventually, I discovered the issue, where there was outdated logic using previous accessors for user data, where it was not accessing user data at the correct location. I was able to fix this, and along with the software engineer, we went through the entire login process and standardized the new changes everywhere, as well as documented it for future migrations or changes.
 
-3. Tell me about a mistake you made.
+3. Tell me about a mistake you made.  
     During my first internship at Trace, I made the mistake of bulking my changes to the quality assurance testing script. Instead of making smaller changes and testing them to ensure validity and correctness, I added all my changes then ran them directly on the troubleshooting cameras. With that, I ended up receiving invalid logs across the board for those cameras, and had to then manually test them outside using the manual testing script. Afterwards, my mentor and I went back through and reviewed my changes to the script. Luckily, the script itself was changed only on the local machine I was working on, and we were able to correct the issues and resolve a working version. From this experience, I learned the importance of iterating slowly and being more deliberate and careful. Had my changes been to something in production with users, the impact would have been far greater.
 
 Topics to talk about:
@@ -33,13 +33,13 @@ Topics to talk about:
 
 Preface: I have never worked in a production environment, so these answers are conceptual and hypothetical, not yet backed by experience.
 
-1. How do you respond when something is down?
+1. How do you respond when something is down?  
     I would first triage the issue to ensure minimal impact to users. This could be in the form of rollbacks, shutdowns, and things of that nature in accordance to the critical nature of the issue. Then, I would check metrics to view the area of effect the issue has, whether it is a single instance issue, or widespread across regions/deployments. I would then dig deeper through using traces, finding the area(s) that are causing this, and pinpoint the exact problems using the function/logic logs.
 
-2. Have you ever had to debug under pressure?
+2. Have you ever had to debug under pressure?  
     I have never had to debug under pressure or in production, however, I do treat debugging in all environments as if I was in production, to build strong habits and structure in my debugging. I believe being methodical and iterative is the best way to debug under pressure, and using a sort of checklist and structure to debugging is how I do that. I generally mock up a list of potential issues I believe I should investigate, based on metrics. From there, I look into traces and logs and rule out invalid options, and explore deeper into viable issues that may be the actual cause, and add any additional issues that I believe could be a possibility. I essentially funnel wide and get narrower as I debug, in order to be efficient in debugging in cases where my first few attempts may be incorrect.
 
-3. How do you balance speed vs reliability?
+3. How do you balance speed vs reliability?  
     I believe that if one is placed above the other, reliability should be more important than speed. With that in mind, I always lean towards reliability, especially for critical functions and applications. Tradeoffs for speed can be made in noncritical areas, where reliability may not be as necessary. However, in my opinion, there is no use in being efficient and fast if you are inconsistent and unreliable.
 
 Topics to talk about:
@@ -57,13 +57,13 @@ Focus on:
 
 ## Handling Ambiguity
 
-1. Tell me about a time that requirements were unclear.
+1. Tell me about a time that requirements were unclear.  
     One time my requirements were unclear was during my deployment project at ForOurLastNames. The team had finished iterating their beta version of the application and wanted to deploy the app, which is what I was assigned to do. The instructions I was given were to find the best way to deploy the application for the company. I had no other guidance or requirements other than that, and so it was vague from the start. The first thing I did was research many of the deployment options out there, for database, front-end, and server, and compile them. From this, I wrote up detailed descriptions of each, highlighting tradeoffs that would need to be made, especially revolving around server-side deployment. The team wanted their stack configured around AWS, so I chose to pursue those options. I met frequently with the CEO and CTO, explaining different paths I was considering, such as whether to use AWS Lambda or EC2, and what features we would have to consider for both. Eventually, I was able to come to a conclusive plan for the client-side and server-side deployments, and utilized S3, CloudFront CDN, API Gateway, and Lambda to deploy our single-origin application on AWS. By the end of my internship, I successfully completed my project and got the first initial version of the application up and running for investors and beta-testers to use.
 
-2. How do you approach open-ended problems?
+2. How do you approach open-ended problems?  
     I approach open-ended problems by clarifying and asking questions to consolidate my understanding of the problem. During my task to implement Stripe payments for subscriptions, I was fully in charge of what data to store in database and what to ignore. At the time, I was new to Stripe API integration and did not yet know what was necessary. From this, I asked more questions and got a better understanding of what the CTO had in mind. From that, I stored specific data for checks of subscription, trials, and for user database logging. 
 
-3. How do you prioritize when everything feels urgent?
+3. How do you prioritize when everything feels urgent?  
     I prioritize based on user impact. I believe the tasks with the most effect should be completed first, to ensure a good user experience and minimalization of issues and problems that may occur. With that, it is also important to be structured in pressured and urgent settings to stay on track and work methodically.
 
 
