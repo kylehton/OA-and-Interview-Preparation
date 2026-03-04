@@ -1,85 +1,31 @@
-Tell me about a project you worked on that you’re particularly proud of.
+# Common Behavioral Questions Asked
 
-What they evaluate:
-Ownership
-Technical depth
-Ability to explain complex work clearly
+---
 
-Use:
-Your Lambda production deployment story (Story 1).
+## 1. Tell me about a project you worked on that you’re particularly proud of.
 
-Good angles:
-End-to-end ownership
-Choosing serverless architecture
-Monitoring and scaling considerations.
+One personal project that I have worked on that I am particularly proud of is my Git Lint project, an automated AI-powered code reviewer. The project itself is an event-driven function conditioned on a GitHub pull request webhook, where it views the diff, contextualizes using RAG, and compiles a summary of changes, improvements, and issues in a comment within the pull request. I feel proud of this project because I introduced myself to new technologies and learned through building and using them. At the time, I had no direct experience with Pinecone, and very little with S3. I learned how to create embeddings myself, as well as configure a vector database to be efficiently designed for my use case. Additionally, the project itself is self-sustainable. Each pull request diff generates its own analysis and comment, but also then updates the vector database to include the changes as well, meaning that hypothetically, I no longer need to touch it, which holds true. Even now, around 10 months after building it, it works perfectly as intended, without me having to revise anything. That reliability aspect of the project is something I am proud of, in that I have built something that I can rely on and know that it will work.
 
+---
 
+## 2. Tell me about a time you faced a challenging problem and how you solved it.
 
-Tell me about a time you faced a challenging problem and how you solved it.
+During my time at PM Accelerator, my team and I were assigned to build an internal tool leveraging an LLM to improve resumes for the Product Manager industry. We managed a working minimum viable product, but the processing within the LLM calls were too slow. Although it did work, resumes were parsed and analyzed in chunks sequentially, and for resumes with more improvements or more pages, this took much longer than we wanted, upwards of 20 seconds. With this, I decided to try and find some way to process chunks in parallel to condense the time taken. After some research, I landed on implementing an asynchronous worker task queue, using Celery workers and a Redis message queue. With this, tasks like analyzing a user's Experience or Projects section were queued, and given a number of asynchronous workers, could be run through the LLM simultaneously. Through testing that implementation, we noticed the average time taken for full resume analysis decrease nearly 100%. The experience itself pushed me to think not just about how to build something, but how to make it efficient and optimal, looking deeper into its intricacies and optimizing for user experience. This is something I have taken with me and applied in my own thinking and mindset. 
 
-What they evaluate:
-Problem solving process
-Persistence
-Structured thinking
+---
 
-Use:
-Your Celery + Redis async pipeline story.
+## 3. Tell me about a time something didn’t go as planned or you made a mistake.
 
-Key points:
-Bottleneck
-Identifying root cause
-Architectural solution
+In my previous internship with ForOurLastNames, I was tasked with configuring Stripe API for the company application, and built the subscription billing pipeline. After hours and hours of research through documentation, I was ready to build, and set up a small set of working subscription endpoints utilizing Stripe's event webhooks. Through basic tests, I believed it had worked, and so as a final check, I mocked up a larger sequence of events. From there, I noticed there was an issue, where duplicate events and retries were triggering database writes and function calls I did not want. Although the writes and calls were harmless, there was still a large potential of something going wrong. Doing more of a deep dive, I discovered that I had not accounted for idempotency of user subscription status, given the at-least-once nature of Stripe webhooks. With that, I stored event IDs, and checked incoming events against those, eliminating duplicate event errors. From this, I learned the importance of accounting for all possibilities, and the importance of building reliable, secure systems that work as intended all the time.
 
+---
 
+## 4. Tell me about a time you automated something or improved an existing process.
 
+At my first internship with Trace, I worked with the quality assurance team. They ran scripts to test the camera software and hardware, but for versioning and updates for new versions, their system was still quite manual. This led to more downtime manually listing out versions of cameras in logs and spreadsheets for their bi-weekly auditing. At the time, I had little work, and chose to make things more efficient. I edited the testing script to parse the test information and metrics as well as the versioning into the Google sheets used, and log versions for version control and visibility. My change ended up saving the engineers time, where they could then put towards other tasks. From this, I learned how small changes, like going through a virtual machine and finding its version and logging it, could have a large impact on the day-to-day work of an engineer and help speed things up.
 
-Tell me about a time something didn’t go as planned or you made a mistake.
+---
 
-What they evaluate:
-Accountability
-Learning mindset
-Ability to improve systems
+## 5. Tell me about a time you worked with others to accomplish something.
 
-Use:
-Your webhook idempotency / duplicate event issue.
-
-Important:
-Admit the mistake
-Show debugging
-Explain prevention
-
-
-
-
-Tell me about a time you automated something or improved an existing process.
-
-What they evaluate:
-Initiative
-Efficiency mindset
-Impact
-
-Use:
-Your SSH automation story.
-
-Key points:
-Manual process
-Built automation
-Reduced troubleshooting time.
-
-
-
-
-Tell me about a time you worked with others to accomplish something.
-
-What they evaluate:
-Communication
-Collaboration
-Ability to work on a team
-
-Use:
-Any internship project where you coordinated with others (for example integrating auth, billing, or backend services).
-
-Key points:
-What each person owned
-How you communicated
-Result
+At PM Accelerator, I was placed in a large team of 11, where 7 of us were product manager interns and 4 of us were varying engineering interns (front-end, back-end, AI, and data). We were tasked with creating a resume improvement internal tool, and had to work together to accomplish this. From the start, we worked cohesively to draw up a game plan, and ensure we were in sync with each other on what we were aiming to build. The engineers also coordinated between themselves, with myself and the front-end engineering intern working together to build the application and the AI engineering intern with training a custom model. Halfway through the internship, the data engineer disappeared completely. He was in charge of database and schemas, but now, we had nothing completed to store user resume data and work with. My role was the most similar to his, and so I picked up where he left off, configuring a Mongo database on the fly, while my teammates covered some areas I was working on, like endpoint integration into the React app. Together, we were able to finish the minimum viable product successfully, in time to show a demo to the team. I learned the importance of community and collaboration, and how people come together to help and support each other through sudden problems and issues that may arise.

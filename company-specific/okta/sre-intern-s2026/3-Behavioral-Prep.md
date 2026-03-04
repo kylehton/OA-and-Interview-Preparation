@@ -4,6 +4,12 @@ Compilation of STAR stories + topics to focus in on specific to Okta SRE intern 
 
 ---
 
+## Why Site Reliability Engineering? Why Okta?
+
+Throughout my internships and personal projects, I started realizing that the parts of engineering I enjoyed the most were the ones focused on making systems reliable and trustworthy for real users. For example, when I was building backend services, I found myself thinking not just about whether something worked, but how it behaved in production, things like monitoring, handling retries, or ensuring systems continued working when something failed. At the time, I hadn’t really connected that mindset to the role of Site Reliability Engineering. After learning more about SRE and speaking with previous Okta interns, I realized that many of the problems I naturally gravitated toward, like observability, automation, and designing systems that handle failure gracefully, which are core parts of the SRE role. That’s what excites me about the opportunity at Okta. Identity infrastructure sits on the critical path for so many applications, which means reliability and security are incredibly important. Being able to work on systems where reliability directly impacts millions of users is something I find really exciting, and it’s an environment where I believe I could grow a lot as an engineer.
+
+---
+
 ## Ownership
 
 1. Tell me about a time you owned something end-to-end.  
@@ -193,3 +199,17 @@ When deploying one of my backend services on AWS using a serverless architecture
 While implementing a billing system using Stripe webhooks, I initially built the webhook handler to update user subscription states whenever an event was received. However, I didn’t initially account for the fact that Stripe may resend webhook events if it doesn’t receive a successful response. Because of that, the same event could be delivered multiple times, which meant the handler could potentially apply the same state update more than once. When reviewing logs during testing, I noticed duplicate webhook deliveries from Stripe retries, which revealed that the system could end up in an inconsistent state if the same event was processed multiple times. To fix this, I implemented idempotency checks in the webhook handler. I stored previously processed event IDs and verified whether an event had already been handled before applying any updates. This ensured that repeated events would not trigger duplicate state changes. This experience taught me an important lesson about distributed systems: when interacting with external services, you should always assume retries and duplicate events are normal behavior, not edge cases. Designing systems to handle those scenarios makes them much more reliable.
 
 ---
+
+# Questions to Ask: Senior Site Reliability Engineer -> Manager
+
+1. From my previous chat with Mr. Hartrich, I learned more about his work at FedRAMP High, which is what I am assuming I would be placed under. For your team specifically, do you collaborate with product or engineering teams, and if so, how? 
+
+2. What kinds of reliability problems do new engineers usually underestimate when they first start working on large-scale systems?
+
+3. What distinguishes interns who really succeed on your team?
+
+4. What reliability challenges is your team currently focused on improving?
+
+5. How does your team balance building new features with maintaining reliability?
+
+6. What are some of the most important tools or systems your SRE team relies on day-to-day?
