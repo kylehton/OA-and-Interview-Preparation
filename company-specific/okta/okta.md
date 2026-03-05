@@ -12,4 +12,4 @@ Technical Interview: 2/25/2026 (Feedback: I did well, good communication and exp
 
 Recruiter Reachout for Final Round Behavioral: 2/25/2026
 
-Final Round Behavioral: 3/4/2026
+Final Round Behavioral: 3/4/2026 (My notes: I thought it went well, had a good conversation about the role and what it entailed, as well as my experiences building and learning. One red flag is that I have no direct experience with Kubernetes + Terraform, which was assured that it was ok, but may be a tiebreaker point not in my favor. Also my previous product-forward thought process may have shown through in my explanations, working against me)
