@@ -22,7 +22,7 @@
 
 Total per Difficulty Level:
 - Easy: 28
-- Medium: 54
+- Medium: 55
 - Hard: 0
 
-***Progress: 82/150***
+***Progress: 83/150***
