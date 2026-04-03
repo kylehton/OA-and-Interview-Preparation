@@ -73,14 +73,37 @@ def checkObject(day, hour, minute) -> bool:
 # ---------------------------------------------------------------------------
 
 def findDisappearance():
-    """
-    Find the exact minute the item first disappeared using hierarchical binary
-    search, minimising total latency.
-
-    Returns (day, hour, minute) — the first moment checkObject returns False.
-    Days  : 0–29   Hours : 0–23   Minutes : 0–59
-    """
-    pass  # TODO: implement
+    # search through 30 days
+    l = 0
+    r = 30
+    while l < r:
+        mid = (l+r)//2
+        if checkObject(mid, 23, 59):
+            l = mid + 1
+        else:
+            r = mid
+    day = l
+    # search through 24 hours
+    l = 0
+    r = 24
+    while l < r:
+        mid = (l+r)//2
+        if checkObject(day, mid, 59):
+            l = mid + 1
+        else:
+            r = mid
+    hour = l
+    # search through 60 minutes
+    l = 0
+    r = 60
+    while l < r:
+        mid = (l+r)//2
+        if checkObject(day, hour, mid):
+            l = mid + 1
+        else:
+            r = mid
+    minute = l
+    return (day, hour, minute)
 
 
 # ---------------------------------------------------------------------------
