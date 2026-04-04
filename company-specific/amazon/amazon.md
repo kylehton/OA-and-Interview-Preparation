@@ -8,3 +8,6 @@ Took OA: 1/23/2026 (Q1: 15/15, Q2: 13/15, prefix sum, similar to house robber bu
 
 Passed OA: 1/26/2026
 
+Note: Jeff moved from Amazon -> Tesla, so unknown if I am still eligible.
+
+New Recruiter Reachout: 4/3/2026 (was about eligibility for a co-op, so this might be the end of the line since I'm not in Jacobs)
