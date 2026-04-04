@@ -15,6 +15,8 @@ result = [0, 1, 2, 2, 1]
 
 # we can iterate by ticket, going through each range and adding 1 for each car -> O(n^2)
 
+# can use result[i], can use same array to count entry and exit; ith time -> n num of entries, n+1
+
 from collections import deque
 
 def count_cars(n :int, tickets: list) -> list:

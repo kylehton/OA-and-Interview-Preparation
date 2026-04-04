@@ -10,6 +10,18 @@ For instance, given a list of ranges:
 [4, 10]
 [3, 5]
 
+[0, 5] [2, 9] [3, 5] [4, 10] [6, 8]
+
+0 - 0
+2 - 2
+3 - 4 
+4 - 3
+5 - 0, 4
+6 - 1
+8 - 1
+9 - 2
+10 - 3
+
 Searching through the above with a query timestamp of 3 should return:
 [0, 2, 4]
 because [0, 5], [2, 9], [3, 5] contain timestamp 3.
