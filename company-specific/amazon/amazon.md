@@ -1,5 +1,7 @@
 # **Software Development Engineer Intern I**
 
+### Recruiter(s): Jeff Nguyen, Jackie Palacio
+
 Applied: 10/27/2025
 
 Received OA: 1/21/2026

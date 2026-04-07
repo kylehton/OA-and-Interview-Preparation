@@ -1,5 +1,7 @@
 # **AI/ML Partner Summer Intern**
 
+### Recruiter: Caroline Ngo
+
 Applied: 12/19/2025
 
 Took Pre-Screen OA: 12/24/2025
