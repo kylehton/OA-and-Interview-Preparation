@@ -1,3 +1,5 @@
+# NOT in NC 150
+
 from typing import Optional, List
 
 # Definition for a binary tree node.
