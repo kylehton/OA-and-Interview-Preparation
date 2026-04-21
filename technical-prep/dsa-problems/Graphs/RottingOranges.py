@@ -1,59 +1,36 @@
-# each increment of time rots the surrounding fruit, so we run bfs
-# and keep track of the amount of cycles it takes for all values
-# to be visited/rotted
-# we first need to find all initial rotting oranges
-# from there, we run bfs on the set of initial
-# we should take the current length of queue for each level as well,
-# so when we append new nodes for next bfs level, they do not change
+from typing import List
+
+# we should run a bfs, where we go layer by layer beginning from
+# any position where the grid is 2. on each iteration, we set the
+# visited position = 0 to prevent duplicate counting
 
 from collections import deque
 
 class Solution:
-    def orangesRotting(self, grid: list[list[int]]) -> int:
-
-        rotting_q = deque()
-
-        def rot_nearby(row, col):
-            if 0 <= row+1 < len(grid) and 0 <= col < len(grid[0]):
-                if grid[row+1][col] == 1:
-                    grid[row+1][col] = 2
-                    rotting_q.append((row+1, col))
-            if 0 <= row-1 < len(grid) and 0 <= col < len(grid[0]):
-                if grid[row-1][col] == 1:
-                    grid[row-1][col] = 2
-                    rotting_q.append((row-1, col))
-            if 0<= row < len(grid) and 0 <= col+1 < len(grid[0]):
-                if grid[row][col+1] == 1:
-                    grid[row][col+1] = 2
-                    rotting_q.append((row, col+1))
-            if 0 <= row < len(grid) and 0 <= col-1 < len(grid[0]):
-                if grid[row][col-1] == 1:
-                    grid[row][col-1] = 2
-                    rotting_q.append((row, col-1))
-
-        fruit_cnt = 0 # edge case if all 0s
-        for row in range(len(grid)):
-            for col in range(len(grid[0])):
-                if grid[row][col] == 2:
-                    rotting_q.append((row, col))
-                if grid[row][col] > 0:
-                    fruit_cnt += 1
-        
-        if fruit_cnt == 0:
-            return 0
-        
-        currTime = 0
-        while rotting_q:
-            currTime += 1
-            for i in range(len(rotting_q)):
-                r, c = rotting_q.popleft()
-                rot_nearby(r, c)
-        
+    def orangesRotting(self, grid: List[List[int]]) -> int:
+        DIRECTION = [(1,0), (0,1), (-1,0), (0,-1)]
+        queue = deque()
+        countMinutes = 0
+        freshCount = 0
         for r in range(len(grid)):
             for c in range(len(grid[0])):
-                if grid[r][c] == 1:
-                    return -1
-        
-        return currTime-1
+                if grid[r][c] == 2:
+                    queue.append((r, c))
+                elif grid[r][c] == 1:
+                    freshCount += 1
 
-        
+        while queue and freshCount > 0:
+            for _ in range(len(queue)):
+                top = queue.popleft()
+                for dr, dc in DIRECTION:
+                    i, j = top[0]+dr, top[1]+dc
+                    if i >= 0 and i < len(grid) and j >= 0 and j < len(grid[0]):
+                        if grid[i][j] == 1:
+                            queue.append((i, j))
+                            grid[i][j] = 0
+                            freshCount -= 1
+            countMinutes += 1
+
+        if freshCount != 0:
+            return -1
+        return countMinutes

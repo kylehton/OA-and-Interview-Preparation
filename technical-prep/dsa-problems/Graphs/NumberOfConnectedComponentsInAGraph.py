@@ -1,41 +1,35 @@
-from collections import deque
 from typing import List
-# we can use a visited set 
-# we loop through each edge, checking it against the visited node set
-# for nodes that are unvisited, we keep going until invalid,
-# adding them into the visited set. after all possible ones are added
-# we increment count by one, then continue. the condition to begin
-# another count is the starting vertex in an edge NOT in visited set
 
-# edge case: isolated vertices will show in n, but not in edge set
-# use that to supplement edge-path component counting
+# we can create an adjacency list to traverse each component
+# keeping track of each traversed node with a visited set
+# while the current traversal runs, we check it against the len
+# of the current set compared the the total number of nodes
+# we then iterate through the dict checking nonvisited nodes and
+# running our traversal through that
+
+from collections import defaultdict, deque
 
 class Solution:
     def countComponents(self, n: int, edges: List[List[int]]) -> int:
-        edge_dict = {}
-        for edge in edges:
-            if edge[0] not in edge_dict:
-                edge_dict[edge[0]] = []
-            if edge[1] not in edge_dict:
-                edge_dict[edge[1]] = []
-            edge_dict[edge[0]].append(edge[1])
-            edge_dict[edge[1]].append(edge[0])
-        
         visited = set()
-        queue = deque()
-        count = 0
-        for val in edge_dict.keys():
-            if val not in visited:
-                queue.append(val)
-                visited.add(val)
+        adjList = defaultdict(list)
+        for edge in edges:
+            adjList[edge[0]].append(edge[1])
+            adjList[edge[1]].append(edge[0])
+        
+        count  = 0
+        for node in range(n):
+            if node not in visited:
+                visited.add(node)
+                queue = deque()
+                queue.append(node)
                 while queue:
-                    node = queue.popleft()
-                    for neighbor in edge_dict[node]:
+                    top = queue.popleft()
+                    for neighbor in adjList[top]:
                         if neighbor not in visited:
-                            queue.append(neighbor)
                             visited.add(neighbor)
+                            queue.append(neighbor)
                 count += 1
-        if len(visited) < n:
-            count += n-len(visited)
+        
         return count
 

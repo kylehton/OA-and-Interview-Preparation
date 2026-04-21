@@ -1,18 +1,24 @@
-# we can use a heap to store a tuple, where the first value
-# is the Euclidean dist, and the second is the point itself
+from typing import List
+
+# heap, manage size of k -> return any order
+# track len heap, replace on len > k
 
 import heapq
 import math
 
 class Solution:
-    def kClosest(self, points: list[list[int]], k: int) -> list[list[int]]:
+    def kClosest(self, points: List[List[int]], k: int) -> List[List[int]]:
         heap = []
-        heapq.heapify(heap)
-        for point in points:
-            dist = math.sqrt(point[0]**2 + point[1]**2)
-            heapq.heappush(heap, (dist, point))
 
+        for point in points:
+            distance = math.sqrt((point[0]**2) + (point[1]**2))
+            if len(heap) == k:
+                if -distance > heap[0][0]:
+                    heapq.heapreplace(heap, (-distance, point))
+            else:
+                heapq.heappush(heap, (-distance, point))
+        
         result = []
-        for i in range(k):
-            result.append(heapq.heappop(heap)[1])
+        for item in heap:
+            result.append(item[1])
         return result

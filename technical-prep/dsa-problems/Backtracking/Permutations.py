@@ -1,22 +1,25 @@
-# we want all possible permutations
-# what we can do is use a backtracking algorithm
-# we recursively loop through all possible additions
-# where the base case is an array of correct length
+from typing import List
+
+# we can use backtracking to add a particular element
+# from this, the base case would be upon any list of len(nums)
 
 class Solution:
-    def permute(self, nums: list[int]) -> list[list[int]]:
-        def buildPermutation(numList, result):
-            if len(numList) == len(nums):
-                result.append(numList[:])
-                return
-            for num in nums:
-                if num not in numList:
-                    numList.append(num)
-                    buildPermutation(numList, result)
-                    numList.pop()
-            return
-        
-        res = []
-        buildPermutation([], res)
-        return res
+    def permute(self, nums: List[int]) -> List[List[int]]:
+        result = []
+        def backtrack(arr, added): # arr = current array, added = prev. added
+            if len(arr) >= len(nums):
+                result.append(arr[:])
+                return arr
+
+            for i in range(len(added)):
+                if not added[i]:
+                    arr.append(nums[i])
+                    added[i] = True
+                    backtrack(arr, added)
+                    arr.pop()
+                    added[i] = False
             
+            return arr
+        
+        backtrack([], [False for _ in range(len(nums))])
+        return result

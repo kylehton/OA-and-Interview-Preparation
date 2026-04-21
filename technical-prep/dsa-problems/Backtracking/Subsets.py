@@ -1,16 +1,21 @@
+from typing import List
 
+# we can use a backtracking algorithm, where we recursively add/don't add a particular
+# elem, adding forward (to avoid duplicates)
 
 class Solution:
-    def subsets(self, nums: list[int]) -> list[list[int]]:
-        res = []
-        def build_subset(self, index, curr_arr, result):
-            if index >= len(nums):
-                result.append(curr_arr[:])
-                return
-            build_subset(self, index+1, curr_arr, result)
-            curr_arr.append(nums[index])
-            build_subset(self, index+1, curr_arr, result)
-            curr_arr.pop()
+    def subsets(self, nums: List[int]) -> List[List[int]]:
+        result = []
+        def backtrack(index, arr):
+            nonlocal result
+            if index == len(nums):
+                result.append(arr[:])
+            else:
+                arr.append(nums[index])
+                backtrack(index+1, arr)
+                arr.pop()
+                backtrack(index+1, arr)
+            return arr
         
-        build_subset(self, 0, [], res)
-        return res
+        backtrack(0, [])
+        return result

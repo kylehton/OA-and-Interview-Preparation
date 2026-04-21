@@ -5,24 +5,26 @@ from typing import List
 
 class Solution:
     def exist(self, board: List[List[str]], word: str) -> bool:
-        visited = set()
-        def backtrack(r, c, letter):
-            nonlocal visited
-            if (r, c) in visited or 0 > r or r >= len(board) or 0 > c or c >= len(board[0]) or board[r][c] != word[letter]:
+        def search(r: int, c: int, index: int, visited: set):
+            if r < 0 or r >= len(board) or c < 0 or c >= len(board[0]) or index == len(word):
+                return (index == len(word))
+            if (r, c) in visited:
                 return False
-            elif board[r][c] == word[letter] and letter == len(word)-1:
-                return True
-            visited.add((r, c))
-            left = backtrack(r-1, c, letter+1)
-            right = backtrack(r+1, c, letter+1)
-            up = backtrack(r, c-1, letter+1)
-            down = backtrack(r, c+1, letter+1)
-            visited.remove((r, c))
-            return (left or right or up or down)
-        
-        for i in range(len(board)):
-            for j in range(len(board[0])):
-                possible = backtrack(i, j, 0)
-                if possible:
-                    return True
+            if board[r][c] == word[index]:
+                index += 1
+                visited.add((r, c))
+                wordFound = search(r+1, c, index, visited) or search(r-1, c, index, visited) or search(r, c+1, index, visited) or search(r, c-1, index, visited)
+                index -= 1
+                visited.remove((r, c))
+                return wordFound
+            else:
+                return False
+
+        for r in range(len(board)):
+            for c in range(len(board[0])):
+                if board[r][c] == word[0]:
+                    found = search(r, c, 0, set())
+                    if found:
+                        return True
         return False
+

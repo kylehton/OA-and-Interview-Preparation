@@ -1,25 +1,28 @@
-# we need all combinations of numbers where the sum = target
-# we can run a recursive backtracking alg that a certain amount
-# and keeps track of a sum, returning back up if equals or exceeds
-# upon equals, we add it to the total result array
-# need to pass: result array, current sum array, curr sum, i
+from typing import List
+
+# we have an array of numbers = nums, and an int target
+# we need all combinations of numbers that sum up to target, excluding duplicates
+
+# we should first sort to avoid duplicates
+# we can backtrack in adding numbers, with a return base case of:
+# sum equalling or exceeding target. we add to result on equal
 
 class Solution:
-    def combinationSum(self, nums: list[int], target: int) -> list[list[int]]:
-        res = []
-        def find_combos(self, result, curr_arr, curr_sum, index):
-            if curr_sum == target:
-                result.append(curr_arr[:])
-                return
+    def combinationSum(self, nums: List[int], target: int) -> List[List[int]]:
+        result = []
+        def backtrack(arr: list[int], currSum: int, index: int):
+            nonlocal result
+            if currSum >= target:
+                if currSum == target:
+                    result.append(arr[:])
+                return arr
+            
             for i in range(index, len(nums)):
-                if curr_sum + nums[i] > target:
-                    break
-                curr_arr.append(nums[i])
-                curr_sum += nums[i]
-                find_combos(self, result, curr_arr, curr_sum, i)
-                curr_arr.pop()
-                curr_sum -= nums[i]
+                arr.append(nums[i])
+                backtrack(arr, currSum+nums[i], i)
+                arr.pop()
         
-        nums.sort()
-        find_combos(self, res, [], 0, 0)
-        return res
+            return arr
+        
+        backtrack([], 0, 0)
+        return result

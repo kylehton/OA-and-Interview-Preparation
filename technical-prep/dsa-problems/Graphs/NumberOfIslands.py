@@ -1,27 +1,22 @@
-# we can use dfs to search through an entire island, marking it as visited
-# we can iterate through the entire grid to find any valid islands
+from typing import List
 
 class Solution:
-    def numIslands(self, grid: list[list[str]]) -> int:
-        def grid_dfs(r, c):
-            if 0 <= r < len(grid) and 0 <= c < len(grid[0]):
-                if grid[r][c] == '1':
-                    grid[r][c] = 0
-                else:
-                    return
-                grid_dfs(r+1, c)
-                grid_dfs(r-1, c)
-                grid_dfs(r, c+1)
-                grid_dfs(r, c-1)
-            else:
+    def numIslands(self, grid: List[List[str]]) -> int:
+        def removeIsland(i, j):
+            if 0 > i or i >= len(grid) or 0 > j or j >= len(grid[0]) or grid[i][j] == '0':
                 return
+            grid[i][j] = '0'
+            removeIsland(i+1, j)
+            removeIsland(i-1, j)
+            removeIsland(i, j+1)
+            removeIsland(i, j-1)
+            return
+
         count = 0
-        for row in range(len(grid)):
-            for col in range(len(grid[0])):
-                if grid[row][col] == "1":
+        for r in range(len(grid)):
+            for c in range(len(grid[0])):
+                if grid[r][c] == '1':
                     count += 1
-                    grid_dfs(row, col)
+                    removeIsland(r, c)
         
         return count
-        
-            

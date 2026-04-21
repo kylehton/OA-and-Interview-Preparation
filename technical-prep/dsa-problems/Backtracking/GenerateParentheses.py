@@ -1,48 +1,36 @@
-# we could do backtracking and have a check at the end using a stack
-# given that we know n is from 1-7, it adds at most, O(7)
+from typing import List
+
+# we can use a open and close count in backtracking,
+# where we enforce open >= close, and upon close == n,
+# we check validity and add to result
 
 class Solution:
-    def check_parenthesis(self, s: str):
-        stack = []
-        for char in s:
-            if char == '(':
-                stack.append(char)
-            else:
-                if len(stack) == 0:
-                    return False
-                stack.pop()
-        if len(stack) > 0:
-            return False
-        return True
-
-    def generateParenthesis(self, n: int) -> list[str]:
-        # we need to keep trying combos until len(str) = n
-        # base case: len = n, helper func. to check
-        # add or not depending on helper res
-        # need to pass: string, two sets of calls
-        # one set for open, one for close, each have 2 for yes/no?
+    def generateParenthesis(self, n: int) -> List[str]:
+        def checkParenthesis(string: str) -> bool:
+            stack = []
+            for char in string:
+                if char == '(':
+                    stack.append(char)
+                else:
+                    if len(stack) == 0:
+                        return False
+                    stack.pop()
+            if len(stack) > 0:
+                return False
+            return True
+        
         result = []
-        def genPar(curr_str: str, open_c: int, close_c: int):
+        def backtrack(string: str):
+            nonlocal result, n
+            if (len(string)//2) >= n:
+                if checkParenthesis(string):
+                    result.append(string[:])
+                return string
+        
+            backtrack(string+')')
+            backtrack(string+'(')
             
-            if open_c == close_c == n:
-                print("curr len", len(curr_str)//2)
-                print("curr_str:", curr_str, open_c, close_c)
-                result.append(curr_str[:])
-            elif open_c > n or close_c > n:
-                return
+            return string
 
-            if open_c <= n:
-                curr_str += '('
-                genPar(curr_str, open_c+1, close_c)
-                curr_str = curr_str[:len(curr_str)-1]
-            
-            if open_c > close_c:
-                curr_str += ')'
-                genPar(curr_str, open_c, close_c+1)
-                curr_str = curr_str[:len(curr_str)-1]
-
-        init_str = ""
-        genPar(init_str, 0, 0)
+        backtrack("")
         return result
-
-

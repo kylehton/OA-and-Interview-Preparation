@@ -7,25 +7,25 @@ class TreeNode:
         self.left = left
         self.right = right
 
+# if we run through dfs normally on a BST, we will always go from smallest to largest
+# as such, we can keep a running count after recursive returns upward, and when the count
+# equals k, we set some global variable to return that value
+
 class Solution:
     def kthSmallest(self, root: Optional[TreeNode], k: int) -> int:
-        curr_index = 0
-        val_to_return = 0
+        kthValue = 0
+        count = 0
         def dfs(node):
-            nonlocal curr_index, val_to_return
-            #nonlocal all_nodes
+            nonlocal kthValue, count
             if not node:
                 return
             dfs(node.left)
-            curr_index += 1
-            if curr_index == k:
-                val_to_return = node.val
-                return
-            elif curr_index < k:
-                dfs(node.right)
-            else:
-                return
+            count += 1
+            if count == k:
+                kthValue = node.val
+            dfs(node.right)
+            return
         
         dfs(root)
-        return val_to_return
+        return kthValue
 

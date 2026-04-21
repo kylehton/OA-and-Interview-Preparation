@@ -1,17 +1,17 @@
-# we can use a heap to store all values passing in O(n)
-# if we manipulate it to be a max-heap, we ppop k values
-# and return the kth value, which should be the kth largest
+from typing import List
+
+# we can use a heap of size k
+# we essentially use negative values to ensure storage of the k largest elems
+# the top of the heap, since it is minimum, will always be the minimum of the k largest
 
 import heapq
 
 class Solution:
-    def findKthLargest(self, nums: list[int], k: int) -> int:
+    def findKthLargest(self, nums: List[int], k: int) -> int:
         heap = []
-        heapq.heapify(heap)
         for num in nums:
-            heapq.heappush(heap, -num)
-        curr = 0
-        for i in range(k):
-            curr = heapq.heappop(heap)
+            heapq.heappush(heap, num)
+            while len(heap) > k:
+                heapq.heappop(heap)
         
-        return -curr
+        return heap[0]

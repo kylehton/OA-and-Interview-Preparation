@@ -7,19 +7,18 @@ class TreeNode:
 
 class Solution:
     def goodNodes(self, root: TreeNode) -> int:
-        total_max = 0
-        def dfs(curr_node, curr_max):
-            nonlocal total_max
-            if not curr_node:
+        count = 0
+        def dfs(node, largest):
+            nonlocal count
+            if not node:
                 return
-            if curr_node.val >= curr_max:
-                total_max += 1
-
-            curr_max = max(curr_max, curr_node.val)
-            
-            dfs(curr_node.left, curr_max)
-            dfs(curr_node.right, curr_max)
+            if node.val >= largest:
+                print(largest, node.val)
+                count += 1
+            largest = max(largest, node.val)
+            dfs(node.left, largest)
+            dfs(node.right, largest)
             return
         
-        dfs(root, -float('inf'))
-        return total_max
+        dfs(root, root.val)
+        return count
