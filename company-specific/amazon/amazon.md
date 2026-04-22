@@ -2,6 +2,8 @@
 
 ### Recruiter(s): Jeff Nguyen, Jackie Palacio
 
+## Interviewer(s): Jay Upadhyay, Sai Dhalli
+
 Applied: 10/27/2025
 
 Received OA: 1/21/2026
@@ -16,4 +18,4 @@ New Recruiter Reachout: 4/3/2026 (was about eligibility for a co-op, so this mig
 
 Interview Invite: 4/13/2026
 
-2 Hour -> 2x 1hr B2B Interviews: 4/24/2026
+2 Hour -> 2x 1hr B2B Interviews: 4/24/2026 2pm-3pm, 3:30pm-4:30pm
