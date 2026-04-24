@@ -5,7 +5,6 @@ class Solution:
     def checkValidString(self, s: str) -> bool:
         left = []
         asterick = []
-        right = []
         for i in range(len(s)):
             char = s[i]
             if char == '(':
