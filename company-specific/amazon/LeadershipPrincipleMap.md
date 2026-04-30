@@ -242,7 +242,7 @@ Eliminated the manual version-lookup-and-entry step from the QA workflow. Engine
 
 **Learning:**
 
-The biggest thing I took from this: "that's just how we do it" is often a flag that a process hasn't been questioned, not that it's optimal. The engineers weren't complaining about the manual version logging because they'd accepted it as part of the job, but watching their workflow from outside made it obvious it shouldn't have been their job at all. Small, unglamorous automation that removes friction from someone else's day can have outsized impact, and looking for those opportunities — especially as the newest person on a team, with fresh eyes on the workflow — is a habit I've carried forward. The narrower lesson: when the data you need is already flowing through a system, capturing it at the source is almost always cheaper than reconstructing it later.
+The biggest thing I took from this: "that's just how we do it" is often a flag that a process hasn't been questioned, not that it's optimal. The engineers weren't complaining about the manual version logging because they'd accepted it as part of the job, but watching their workflow from outside made it obvious it shouldn't have been their job at all. Small, unglamorous automation that removes friction from someone else's day can have outsized impact, and looking for those opportunities, especially as the newest person on a team, with fresh eyes on the workflow — is a habit I've carried forward. The narrower lesson: when the data you need is already flowing through a system, capturing it at the source is almost always cheaper than reconstructing it later.
 
 **Follow-Up:**
 

@@ -17,5 +17,3 @@ Final Round Behavioral: 3/4/2026 (My notes: I thought it went well, had a good c
 ***Preliminary Offer Extended: 3/13/2026***
 
 ### **Offer Letter Extended (and Accepted): 3/25/2026**
-
-
