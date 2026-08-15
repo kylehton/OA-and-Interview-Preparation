@@ -11,3 +11,5 @@ Did not pass OA round
 Applied: 8/3/2026
 
 Received OA: 8/6/2026
+
+Took OA (600/600): 8/12/2026
