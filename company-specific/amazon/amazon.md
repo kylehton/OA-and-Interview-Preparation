@@ -21,3 +21,5 @@ Interview Invite: 4/13/2026
 2 Hour -> 2x 1hr B2B Interviews: 4/24/2026 2pm-3pm, 3:30pm-4:30pm (Q1: merge k sorted linked lists, Q2: amazon locker bin/lin search)
 
 ### **Offer Letter Extended (and Accepted): 4/29/2026**
+
+Post-internship note: Received incline for return offer
