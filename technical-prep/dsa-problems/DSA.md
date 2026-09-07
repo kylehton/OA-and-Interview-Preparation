@@ -1,6 +1,6 @@
-**Solutions for NeetCode 150**
+# **Solutions for NeetCode 150**
 
-*Categories:*
+### *Categories:*
 1. Arrays and Hashing: 9/9 (3 easy, 6 medium)
 2. Two Pointers: 5/5 (1 easy, 3 medium, 1 hard)
 3. Sliding Window 4/6 (1 easy, 3 medium)
@@ -15,15 +15,14 @@
 12. Advanced Graphs: 0/6
 13. 1-D Dynamic Programming: 5/12 (2 easy, 3 medium)
 14. 2-D Dynamic Programming: 1/11 (1 medium)
-15. Greedy: 3/8 (3 medium)
+15. Greedy: 4/8 (4 medium)
 16. Intervals: 4/6 (1 easy, 3 medium)
 17. Math & Geometry: 3/8 (2 easy, 1 medium)
 18. Bit Manipulation: 5/7 (5 easy)
 
-Total per Difficulty Level:
+### Total per Difficulty Level:
 - Easy: 28
-- Medium: 68
+- Medium: 69
 - Hard: 5
 
-***Progress: 101/150***
-
+***Progress: 102/150***
