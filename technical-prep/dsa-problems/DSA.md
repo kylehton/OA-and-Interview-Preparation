@@ -7,7 +7,7 @@
 4. Stack: 5/6 (1 easy, 4 medium)
 5. Binary Search: 6/7 (1 easy, 5 medium)
 6. Linked List: 11/11 (3 easy, 6 medium, 2 hard)
-7. Trees: 14/15 (6 easy, 7 medium, 1 hard)
+7. Trees: 15/15 (6 easy, 7 medium, 2 hard)
 8. Heap/Priority Queue: 7/7 (2 easy, 4 medium, 1 hard)
 9. Backtracking: 8/10 (8 medium)
 10. Tries: 0/3
@@ -15,7 +15,7 @@
 12. Advanced Graphs: 0/6
 13. 1-D Dynamic Programming: 5/12 (2 easy, 3 medium)
 14. 2-D Dynamic Programming: 1/11 (1 medium)
-15. Greedy: 4/8 (4 medium)
+15. Greedy: 5/8 (5 medium)
 16. Intervals: 5/6 (1 easy, 4 medium)
 17. Math & Geometry: 6/8 (2 easy, 4 medium)
 18. Bit Manipulation: 5/7 (5 easy)
@@ -23,6 +23,6 @@
 ### Total per Difficulty Level:
 - Easy: 28
 - Medium: 73
-- Hard: 5
+- Hard: 6
 
-***Progress: 105/150***
+***Progress: 107/150***
