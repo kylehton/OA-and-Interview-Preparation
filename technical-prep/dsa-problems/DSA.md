@@ -18,11 +18,11 @@
 15. Greedy: 5/8 (5 medium)
 16. Intervals: 5/6 (1 easy, 4 medium)
 17. Math & Geometry: 6/8 (2 easy, 4 medium)
-18. Bit Manipulation: 6/7 (5 easy, 1 medium)
+18. Bit Manipulation: 7/7 (5 easy, 2 medium)
 
 ### Total per Difficulty Level:
 - Easy: 28
-- Medium: 75
+- Medium: 76
 - Hard: 6
 
-***Progress: 109/150***
+***Progress: 110/150***
