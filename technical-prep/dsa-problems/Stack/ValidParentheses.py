@@ -4,23 +4,15 @@
 
 class Solution:
     def isValid(self, s: str) -> bool:
-        brackets = {'(': ')', '{': '}', '[': ']'}
+        brackets = {'(' : ')', '{' : '}', '[' : ']'}
         stack = []
-
         for char in s:
-            if char in brackets.keys():
+            if char in brackets:
                 stack.append(char)
             else:
-                if stack:
-                    bracket_key = stack.pop()
-                    if brackets[bracket_key] != char:
-                        return False
-                else:
+                if not stack:
                     return False
-        
-        if len(stack) == 0:
-            return True
-        else:
-            return False
-
-        
+                top = stack.pop()
+                if char != brackets[top]:
+                    return False     
+        return not stack
