@@ -35,7 +35,7 @@ def test_delivers_200_and_deduplicates_success():
 
 
 def test_every_2xx_status_is_success():
-    worker, sender, _, sleeps = make_worker([Response(204)])
+    worker, sender, _, sleeps = make_worker([Response(204), Response(204), Response(204)])
     assert worker.deliver(Event("evt_1", "{}")).outcome == "DELIVERED"
     assert sender.calls == 1
     assert sleeps == []
@@ -75,4 +75,3 @@ def test_exhausted_delivery_is_not_marked_processed():
     assert not store.is_processed(event.event_id)
     assert worker.deliver(event).outcome == "DELIVERED"
     assert sender.calls == 4
-

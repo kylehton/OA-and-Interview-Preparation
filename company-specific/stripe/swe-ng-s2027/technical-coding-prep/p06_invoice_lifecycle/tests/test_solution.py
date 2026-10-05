@@ -83,3 +83,65 @@ def test_part_4_over_refund_does_not_mutate():
     ]
     assert process_invoices(commands)[-2:] == ["ERROR", "OPEN,10,5"]
 
+
+def test_part_1_line_ids_are_scoped_to_their_invoice():
+    commands = [
+        "CREATE inv1 c1 USD", "CREATE inv2 c2 USD",
+        "ADD inv1 shared 10", "ADD inv2 shared 20",
+        "TOTAL inv1", "TOTAL inv2",
+    ]
+    assert process_invoices(commands) == ["OK", "OK", "OK", "OK", "10", "20"]
+
+
+def test_part_1_invalid_create_and_add_do_not_reserve_identifiers():
+    commands = [
+        "CREATE inv c US", "CREATE inv c USD", "CREATE inv other EUR",
+        "ADD inv line 0", "ADD inv line 10", "TOTAL inv",
+    ]
+    assert process_invoices(commands) == ["ERROR", "OK", "ERROR", "ERROR", "OK", "10"]
+
+
+def test_part_2_finalized_invoice_rejects_new_lines():
+    commands = [
+        "CREATE inv c USD", "ADD inv first 10", "FINALIZE inv",
+        "ADD inv second 20", "TOTAL inv", "STATUS inv",
+    ]
+    assert process_invoices(commands) == [
+        "OK", "OK", "OK", "ERROR", "10", "OPEN,10,0"
+    ]
+
+
+def test_part_2_payment_ids_are_global_across_invoices():
+    commands = [
+        "CREATE a c USD", "ADD a x 10", "FINALIZE a",
+        "CREATE b c USD", "ADD b x 10", "FINALIZE b",
+        "PAY a shared 10", "PAY b shared 10", "STATUS a", "STATUS b",
+    ]
+    assert process_invoices(commands) == [
+        "OK", "OK", "OK", "OK", "OK", "OK", "OK", "ERROR",
+        "PAID,10,10", "OPEN,10,0",
+    ]
+
+
+def test_part_3_void_rejects_partially_and_fully_paid_invoices():
+    commands = [
+        "CREATE inv c USD", "ADD inv x 10", "FINALIZE inv",
+        "PAY inv p1 5", "VOID inv", "STATUS inv",
+        "PAY inv p2 5", "VOID inv", "STATUS inv",
+    ]
+    assert process_invoices(commands) == [
+        "OK", "OK", "OK", "OK", "ERROR", "OPEN,10,5",
+        "OK", "ERROR", "PAID,10,10",
+    ]
+
+
+def test_part_4_failed_refund_id_is_reusable_and_ids_share_namespace():
+    commands = [
+        "CREATE inv c USD", "ADD inv x 10", "FINALIZE inv", "PAY inv pay 10",
+        "REFUND inv pay 1", "REFUND inv refund 11", "REFUND inv refund 10",
+        "STATUS inv", "PAY inv refund 1",
+    ]
+    assert process_invoices(commands) == [
+        "OK", "OK", "OK", "OK", "ERROR", "ERROR", "OK",
+        "OPEN,10,0", "ERROR",
+    ]

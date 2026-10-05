@@ -5,7 +5,8 @@
 **Entry point:** `validate_cards(cards, bin_ranges) -> list[str]`
 
 Use Python's `csv` module (or equivalent CSV semantics), not a raw comma split.
-Return one result for every card row, preserving card input order.
+Return one CSV-formatted result for every card row, preserving card input order.
+Fields containing commas or quotes must be escaped using normal CSV rules.
 
 ## Part 1 — Normalize and validate format
 
@@ -71,4 +72,3 @@ ranges = [
 validate_cards(cards, ranges)
 # ["p1,DOMESTIC,VALID"]
 ```
-

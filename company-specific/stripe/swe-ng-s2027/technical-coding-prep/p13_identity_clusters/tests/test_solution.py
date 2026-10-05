@@ -54,3 +54,35 @@ def test_part_4_zero_window_and_risk_propagation():
         "REVIEW,a|b", "SAFE,c", "SAFE,z"
     ]
 
+
+def test_part_3_invalid_rows_do_not_reserve_event_ids():
+    events = [
+        "x,-1,a,d,-", "x,1,a,d,-",
+        "y,2,b,-,-", "y,2,b,d,-",
+    ]
+    assert analyze_identities(events) == ["SAFE,a|b"]
+
+
+def test_part_3_empty_event_and_user_ids_are_invalid():
+    events = [",1,a,d,-", "e,1,,d,-", "good,1,z,d,-"]
+    assert analyze_identities(events) == ["SAFE,z"]
+
+
+def test_part_4_occurrences_are_sorted_before_window_links_are_built():
+    events = [
+        "late,10,a,d,-", "early,0,b,d,-", "middle,5,c,d,-"
+    ]
+    assert analyze_identities(events, None, 5) == ["SAFE,a|b|c"]
+
+
+def test_part_4_card_window_boundary_is_inclusive():
+    events = [
+        "e1,0,a,-,card", "e2,5,b,-,card", "e3,11,c,-,card"
+    ]
+    assert analyze_identities(events, None, 5) == ["SAFE,a|b", "SAFE,c"]
+
+
+def test_part_4_risky_valid_singleton_is_reviewed():
+    assert analyze_identities(["e,1,z,d,-"], ["z", "absent"], 10) == [
+        "REVIEW,z"
+    ]

@@ -38,6 +38,23 @@ interview repository or bug.
 | 7 | [Payout Scheduler](d07_payout_scheduler/) | Hard | 50 min | UTC cutoffs and business calendars |
 | 8 | [Template Renderer](d08_template_renderer/) | Hard | 55 min | parsing, includes, escaping, caching |
 
+## Verified starting baseline
+
+Use these counts only to confirm that your environment matches the intended
+starting point. They do not identify root causes.
+
+| Project | Passed | Failed |
+|---|---:|---:|
+| D01 | 3 | 3 |
+| D02 | 3 | 3 |
+| D03 | 4 | 3 |
+| D04 | 4 | 3 |
+| D05 | 4 | 3 |
+| D06 | 3 | 4 |
+| D07 | 3 | 4 |
+| D08 | 4 | 4 |
+| **All projects** | **28** | **27** |
+
 ## Interview mode
 
 For each project:
@@ -83,4 +100,3 @@ or fixed implementation in this directory.
 - A passing focused test is not completion; check for regressions.
 - Keep a clean explanation of each change. Silent trial-and-error misses much of
   the skill this track is designed to build.
-

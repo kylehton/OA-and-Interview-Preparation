@@ -70,3 +70,69 @@ def test_part_4_same_currency_transfer_needs_no_rate_and_is_atomic():
     ]
     assert process_ledger(commands) == ["OK", "OK", "OK", "ERROR", "OK", "50"]
 
+
+def test_part_1_open_and_deposit_validation_is_atomic():
+    commands = [
+        "OPEN a US", "OPEN a USD", "OPEN a EUR",
+        "DEPOSIT d a USD 0", "DEPOSIT d a USD 10", "BALANCE a USD",
+    ]
+    assert process_ledger(commands) == ["ERROR", "OK", "ERROR", "ERROR", "OK", "10"]
+
+
+def test_part_1_transaction_ids_are_global_across_command_types():
+    commands = [
+        "OPEN a USD", "OPEN b EUR", "DEPOSIT shared a USD 20",
+        "RATE 1 USD EUR 1 1", "CONVERT shared 1 a USD EUR 5",
+        "TRANSFER shared 1 a b 5", "BALANCE a USD", "BALANCE a EUR",
+        "BALANCE b EUR",
+    ]
+    assert process_ledger(commands) == [
+        "OK", "OK", "OK", "OK", "ERROR", "ERROR", "20", "0", "0"
+    ]
+
+
+def test_part_2_invalid_rates_are_rejected_without_affecting_later_rates():
+    commands = [
+        "OPEN a USD", "DEPOSIT dep a USD 10",
+        "RATE -1 USD EUR 1 1", "RATE 1 USD USD 1 1", "RATE 1 USD EUR 0 1",
+        "RATE 1 USD EUR 1 1", "CONVERT conv 1 a USD EUR 10", "BALANCE a EUR",
+    ]
+    assert process_ledger(commands) == [
+        "OK", "OK", "ERROR", "ERROR", "ERROR", "OK", "OK", "10"
+    ]
+
+
+def test_part_3_direct_rate_wins_over_newer_reverse_rate():
+    commands = [
+        "OPEN a USD", "DEPOSIT dep a USD 100",
+        "RATE 1 USD EUR 1 2", "RATE 10 EUR USD 100 1",
+        "CONVERT conv 10 a USD EUR 100", "BALANCE a EUR",
+    ]
+    assert process_ledger(commands) == ["OK", "OK", "OK", "OK", "OK", "50"]
+
+
+def test_part_2_failed_conversion_id_is_reusable():
+    commands = [
+        "OPEN a USD", "DEPOSIT dep a USD 10",
+        "CONVERT conv 5 a USD EUR 10", "RATE 5 USD EUR 1 1",
+        "CONVERT conv 5 a USD EUR 10", "BALANCE a EUR",
+    ]
+    assert process_ledger(commands) == ["OK", "OK", "ERROR", "OK", "OK", "10"]
+
+
+def test_part_4_invalid_transfer_id_is_reusable():
+    commands = [
+        "OPEN a USD", "OPEN b USD", "DEPOSIT dep a USD 10",
+        "TRANSFER move 1 a a 10", "TRANSFER move 1 a b 10",
+        "BALANCE a USD", "BALANCE b USD",
+    ]
+    assert process_ledger(commands) == ["OK", "OK", "OK", "ERROR", "OK", "0", "10"]
+
+
+def test_part_4_transfer_can_use_an_inverse_rate():
+    commands = [
+        "OPEN eur EUR", "OPEN usd USD", "DEPOSIT dep eur EUR 50",
+        "RATE 1 USD EUR 1 2", "TRANSFER move 1 eur usd 50",
+        "BALANCE eur EUR", "BALANCE usd USD",
+    ]
+    assert process_ledger(commands) == ["OK", "OK", "OK", "OK", "OK", "0", "100"]

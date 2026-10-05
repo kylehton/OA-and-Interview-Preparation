@@ -65,3 +65,55 @@ def test_part_4_post_release_refund_uses_available_then_own_reserve():
         "OK", "OK", "OK", "ERROR", "OK", "0,0,0"
     ]
 
+
+def test_part_1_invalid_account_does_not_reserve_id_and_duplicate_fails():
+    commands = [
+        "ACCOUNT m -1 0", "ACCOUNT m 0 10001", "ACCOUNT m 0 10000",
+        "ACCOUNT m 0 0",
+        "CHARGE 0 c m 10", "BALANCE 0 m",
+    ]
+    assert process_settlements(commands) == [
+        "ERROR", "ERROR", "OK", "ERROR", "OK", "0,0,10"
+    ]
+
+
+def test_part_3_failed_payout_id_is_reusable_after_release():
+    commands = [
+        "ACCOUNT m 10 0", "PAYOUT 0 payout m 10", "CHARGE 0 charge m 10",
+        "PAYOUT 10 payout m 10", "BALANCE 10 m",
+    ]
+    assert process_settlements(commands) == [
+        "OK", "ERROR", "OK", "OK", "0,0,0"
+    ]
+
+
+def test_part_3_mutation_ids_share_one_global_namespace():
+    commands = [
+        "ACCOUNT m 0 0", "CHARGE 0 shared m 100",
+        "PAYOUT 0 shared m 1", "PAYOUT 0 operation m 10",
+        "REFUND 0 operation shared 1", "BALANCE 0 m",
+    ]
+    assert process_settlements(commands) == [
+        "OK", "OK", "ERROR", "OK", "ERROR", "0,0,90"
+    ]
+
+
+def test_part_4_refund_cap_is_per_charge_and_failed_id_is_reusable():
+    commands = [
+        "ACCOUNT m 0 0", "CHARGE 0 target m 10", "CHARGE 0 other m 100",
+        "REFUND 0 refund target 11", "BALANCE 0 m",
+        "REFUND 0 refund target 10", "BALANCE 0 m",
+    ]
+    assert process_settlements(commands) == [
+        "OK", "OK", "OK", "ERROR", "0,0,110", "OK", "0,0,100"
+    ]
+
+
+def test_part_4_post_release_refund_uses_available_before_own_reserve():
+    commands = [
+        "ACCOUNT m 10 5000", "CHARGE 0 c m 100", "PAYOUT 10 p m 30",
+        "REFUND 11 r c 60", "BALANCE 11 m", "BALANCE 20 m",
+    ]
+    assert process_settlements(commands) == [
+        "OK", "OK", "OK", "OK", "0,10,0", "0,0,10"
+    ]

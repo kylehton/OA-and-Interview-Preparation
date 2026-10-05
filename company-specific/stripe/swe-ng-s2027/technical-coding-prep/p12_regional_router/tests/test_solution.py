@@ -66,3 +66,37 @@ def test_part_4_destination_and_path_ties_are_lexicographic():
     assert result[-3] == "a,5,o>a"
     assert result[-1] == "d,5,o>b>d"
 
+
+def test_part_2_links_are_undirected_and_later_link_replaces_latency():
+    commands = [
+        "ADD a 1", "ADD b 1", "HEALTH a DOWN",
+        "LINK a b 10", "LINK b a 2", "ROUTE r a",
+    ]
+    assert route_requests(commands)[-1] == "b,2,a>b"
+
+
+def test_part_3_error_does_not_reserve_request_id():
+    commands = [
+        "ROUTE retry missing", "ADD missing 1", "ROUTE retry missing"
+    ]
+    assert route_requests(commands) == ["ERROR", "OK", "missing,0,missing"]
+
+
+def test_part_3_none_response_is_cached_after_capacity_changes():
+    commands = [
+        "ADD a 1", "ROUTE used a", "ROUTE empty a", "RELEASE used",
+        "ROUTE empty a", "ROUTE new a",
+    ]
+    assert route_requests(commands) == [
+        "OK", "a,0,a", "NONE", "OK", "NONE", "a,0,a"
+    ]
+
+
+def test_part_4_none_and_unknown_requests_cannot_be_released():
+    commands = [
+        "ADD a 1", "ROUTE used a", "ROUTE none a",
+        "RELEASE none", "RELEASE missing", "RELEASE used",
+    ]
+    assert route_requests(commands) == [
+        "OK", "a,0,a", "NONE", "ERROR", "ERROR", "OK"
+    ]

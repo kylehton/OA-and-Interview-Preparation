@@ -61,3 +61,37 @@ def test_part_4_csv_output_escapes_quoted_ids():
     processor = ["p1,100,USD,SUCCEEDED"]
     assert reconcile(internal, processor) == ['"order,one",MATCH,p1']
 
+
+def test_part_2_invalid_processor_rows_are_neither_matched_nor_orphans():
+    internal = ["pay_1,p_1,100,USD"]
+    processor = [
+        "p_1,-100,USD,SUCCEEDED",
+        "p_2,100,usd,SUCCEEDED",
+        "p_3,100,USD,UNKNOWN",
+        ",100,USD,SUCCEEDED",
+    ]
+    assert reconcile(internal, processor, True) == ["pay_1,MISSING,-"]
+
+
+def test_part_2_nonpositive_internal_amounts_are_ignored():
+    internal = ["zero,p0,0,USD", "negative,pn,-1,USD", "good,p1,1,USD"]
+    processor = ["p0,1,USD,SUCCEEDED", "pn,1,USD,SUCCEEDED", "p1,1,USD,SUCCEEDED"]
+    assert reconcile(internal, processor) == ["good,MATCH,p1"]
+
+
+def test_part_3_a_processor_row_can_only_be_consumed_once():
+    internal = ["a,p,90,USD", "b,p,80,USD"]
+    processor = ["p,100,USD,SUCCEEDED"]
+    assert reconcile(internal, processor) == ["a,MISMATCH,p", "b,MISSING,-"]
+
+
+def test_part_3_fields_are_trimmed_before_matching():
+    internal = [" pay_1 , p_1 , 100 , USD "]
+    processor = [" p_1 , 100 , USD , SUCCEEDED "]
+    assert reconcile(internal, processor) == ["pay_1,MATCH,p_1"]
+
+
+def test_part_4_orphan_output_escapes_processor_id():
+    assert reconcile([], ['"p,one",100,USD,SUCCEEDED'], True) == [
+        '-,ORPHAN,"p,one"'
+    ]

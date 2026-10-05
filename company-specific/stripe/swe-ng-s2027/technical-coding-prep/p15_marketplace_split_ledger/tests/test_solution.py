@@ -88,3 +88,67 @@ def test_part_4_any_dispute_makes_zero_state_disputed():
     ]
     assert process_marketplace(commands)[-1] == "DISPUTED,20,0"
 
+
+def test_part_1_account_and_payment_ids_use_separate_namespaces():
+    commands = [
+        "ACCOUNT shared", "CREATE shared 10", "ACCOUNT shared", "CREATE shared 10",
+        "SPLIT shared shared 10", "CAPTURE shared", "BALANCE shared",
+    ]
+    assert process_marketplace(commands) == [
+        "OK", "OK", "ERROR", "ERROR", "OK", "OK", "10"
+    ]
+
+
+def test_part_1_captured_payment_rejects_more_splits_and_second_capture():
+    commands = [
+        "ACCOUNT a", "ACCOUNT b", "CREATE p 10", "SPLIT p a 10", "CAPTURE p",
+        "SPLIT p b 1", "CAPTURE p", "BALANCE a", "BALANCE b", "STATUS p",
+    ]
+    assert process_marketplace(commands) == [
+        "OK", "OK", "OK", "OK", "OK", "ERROR", "ERROR",
+        "10", "0", "CAPTURED,10,10",
+    ]
+
+
+def test_part_2_operation_ids_are_global_across_payout_refund_and_dispute():
+    commands = [
+        "ACCOUNT a", "CREATE p 100", "SPLIT p a 100", "CAPTURE p",
+        "PAYOUT shared a 10", "REFUND shared p 10", "DISPUTE shared p 10",
+        "BALANCE a", "STATUS p",
+    ]
+    assert process_marketplace(commands) == [
+        "OK", "OK", "OK", "OK", "OK", "ERROR", "ERROR",
+        "90", "CAPTURED,100,100",
+    ]
+
+
+def test_part_2_nonpositive_payout_does_not_reserve_operation_id():
+    commands = [
+        "ACCOUNT a", "CREATE p 10", "SPLIT p a 10", "CAPTURE p",
+        "PAYOUT payout a 0", "PAYOUT payout a 10", "BALANCE a",
+    ]
+    assert process_marketplace(commands) == [
+        "OK", "OK", "OK", "OK", "ERROR", "OK", "0"
+    ]
+
+
+def test_part_3_over_refund_is_atomic_and_failed_id_is_reusable():
+    commands = [
+        "ACCOUNT a", "CREATE p 10", "SPLIT p a 10", "CAPTURE p",
+        "REFUND refund p 11", "BALANCE a", "STATUS p",
+        "REFUND refund p 10", "BALANCE a", "STATUS p",
+    ]
+    assert process_marketplace(commands) == [
+        "OK", "OK", "OK", "OK", "ERROR", "10", "CAPTURED,10,10",
+        "OK", "0", "REFUNDED,10,0",
+    ]
+
+
+def test_part_4_failed_dispute_id_is_reusable():
+    commands = [
+        "ACCOUNT a", "CREATE p 20", "SPLIT p a 20", "CAPTURE p",
+        "DISPUTE dispute p 21", "DISPUTE dispute p 20", "STATUS p",
+    ]
+    assert process_marketplace(commands) == [
+        "OK", "OK", "OK", "OK", "ERROR", "OK", "DISPUTED,20,0"
+    ]

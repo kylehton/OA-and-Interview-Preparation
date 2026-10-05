@@ -71,3 +71,45 @@ def test_part_4_invalid_duplicate_does_not_reserve_id():
     attempts = ["bad,x,e,ep,500", "3,x,e,ep,500"]
     assert plan_deliveries(endpoints, attempts, 3) == ["RETRY,e,ep,5,1"]
 
+
+def test_part_1_first_valid_endpoint_wins_and_fields_are_trimmed():
+    endpoints = [" ep , 0 , 8 ", " ep , 1 , 8 ", "ep,4,8"]
+    attempts = [" 10 , a , event , ep , 500 "]
+    assert plan_deliveries(endpoints, attempts, 5) == ["RETRY,event,ep,11,1"]
+
+
+def test_part_2_exponential_delay_is_capped():
+    endpoints = ["ep,3,10"]
+    attempts = [
+        "1,a1,event,ep,500",
+        "2,a2,event,ep,500",
+        "3,a3,event,ep,500",
+    ]
+    assert plan_deliveries(endpoints, attempts, 5) == ["RETRY,event,ep,13,3"]
+
+
+def test_part_2_equal_timestamps_use_later_input_row():
+    endpoints = ["ep,2,20"]
+    attempts = [
+        "10,a1,event,ep,500",
+        "10,a2,event,ep,429,15",
+    ]
+    assert plan_deliveries(endpoints, attempts, 5) == ["RETRY,event,ep,25,2"]
+
+
+def test_part_3_sixth_field_only_valid_for_429_and_invalid_row_does_not_reserve_id():
+    endpoints = ["ep,2,20"]
+    attempts = ["10,a,event,ep,500,7", "11,a,event,ep,500"]
+    assert plan_deliveries(endpoints, attempts, 5) == ["RETRY,event,ep,13,1"]
+
+
+def test_part_4_any_success_completes_even_if_a_later_attempt_failed():
+    endpoints = ["ep,2,20"]
+    attempts = ["10,a1,event,ep,204", "20,a2,event,ep,500"]
+    assert plan_deliveries(endpoints, attempts, 5) == []
+
+
+def test_part_4_attempt_ids_are_global_across_event_endpoint_pairs():
+    endpoints = ["ep,2,20"]
+    attempts = ["10,shared,e1,ep,500", "100,shared,e2,ep,500"]
+    assert plan_deliveries(endpoints, attempts, 5) == ["RETRY,e1,ep,12,1"]

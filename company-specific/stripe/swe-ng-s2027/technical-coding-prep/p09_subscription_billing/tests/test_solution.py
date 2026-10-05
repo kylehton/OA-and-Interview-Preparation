@@ -67,3 +67,43 @@ def test_part_4_intersection_is_inclusive():
     subscriptions = ["s,c,p,31,31"]
     assert generate_invoices(plans, subscriptions, [], 1, 31) == ["s,c,1,0,10"]
 
+
+def test_part_1_invalid_billing_interval_returns_no_invoices():
+    assert generate_invoices(["p,100,0,0"], ["s,c,p,1,20"], [], 10, 9) == []
+
+
+def test_part_1_first_valid_plan_wins_and_invalid_row_does_not_reserve_id():
+    plans = ["p,-1,0,0", " p , 100 , 0 , 0 ", "p,999,0,0"]
+    subscriptions = ["s,c,p,1,30"]
+    assert generate_invoices(plans, subscriptions, [], 1, 30) == ["s,c,30,0,100"]
+
+
+def test_part_1_first_valid_subscription_wins():
+    plans = ["p,300,0,0"]
+    subscriptions = [
+        "s,c_bad,p,20,10", " s , c_1 , p , 1 , 30 ", "s,c_2,p,1,30"
+    ]
+    assert generate_invoices(plans, subscriptions, [], 1, 30) == ["s,c_1,30,0,300"]
+
+
+def test_part_2_nonpositive_usage_does_not_reserve_event_id():
+    plans = ["p,0,0,2"]
+    subscriptions = ["s,c,p,1,30"]
+    usage = ["10,u,s,0", "10,u,s,5"]
+    assert generate_invoices(plans, subscriptions, usage, 1, 30) == ["s,c,30,5,10"]
+
+
+def test_part_2_usage_outside_subscription_does_not_reserve_event_id():
+    plans = ["p,0,0,2"]
+    subscriptions = ["s,c,p,10,20"]
+    usage = ["9,u,s,5", "10,u,s,5"]
+    assert generate_invoices(plans, subscriptions, usage, 1, 30) == ["s,c,11,5,10"]
+
+
+def test_part_2_event_ids_are_global_across_subscriptions():
+    plans = ["p,0,0,2"]
+    subscriptions = ["s1,c1,p,1,30", "s2,c2,p,1,30"]
+    usage = ["10,shared,s1,5", "10,shared,s2,7"]
+    assert generate_invoices(plans, subscriptions, usage, 1, 30) == [
+        "s1,c1,30,5,10", "s2,c2,30,0,0"
+    ]

@@ -38,7 +38,7 @@ def test_part_2_ratio_uses_inclusive_threshold():
 
 
 def test_part_3_clear_changes_numerator_not_denominator():
-    policies = ["retail,RATIO,6000,3"]
+    policies = ["retail,RATIO,4000,2"]
     merchants = ["m,retail"]
     events = [
         "ATTEMPT,a,m,10,bad", "ATTEMPT,b,m,10,bad", "ATTEMPT,c,m,10,ok",
@@ -64,18 +64,61 @@ def test_part_4_amount_ratio_differs_from_count_ratio():
     policies = ["retail,AMOUNT_RATIO,5000,2"]
     merchants = ["m,retail"]
     events = [
-        "ATTEMPT,a,m,10,bad",
-        "ATTEMPT,b,m,90,ok",
-        "ATTEMPT,c,m,100,bad",
+        "ATTEMPT,a,m,100,bad",
+        "ATTEMPT,b,m,10,ok",
+        "ATTEMPT,c,m,90,ok",
     ]
     assert flagged_merchants(["bad"], policies, merchants, events) == ["m"]
 
 
 def test_part_4_clear_removes_risky_amount():
-    policies = ["retail,AMOUNT_RATIO,5000,2"]
+    policies = ["retail,AMOUNT_RATIO,3000,2"]
     merchants = ["m,retail"]
     events = [
-        "ATTEMPT,a,m,100,bad", "ATTEMPT,b,m,1,ok", "CLEAR,c,a"
+        "ATTEMPT,a,m,100,bad", "ATTEMPT,b,m,40,bad",
+        "ATTEMPT,c,m,60,ok", "CLEAR,clear,a",
     ]
     assert flagged_merchants(["bad"], policies, merchants, events) == []
 
+
+def test_part_1_first_valid_policy_and_merchant_rows_win():
+    policies = [
+        "retail,COUNT,0,1", "retail,COUNT,1,1", "retail,COUNT,99,1",
+        "other,COUNT,2,1",
+    ]
+    merchants = ["m,missing", " m , retail ", "m,other"]
+    events = ["ATTEMPT,a,m,1,bad"]
+    assert flagged_merchants(["bad"], policies, merchants, events) == ["m"]
+
+
+def test_part_1_invalid_attempt_amount_does_not_reserve_event_id():
+    policies = ["retail,COUNT,1,1"]
+    merchants = ["m,retail"]
+    events = ["ATTEMPT,same,m,0,bad", "ATTEMPT,same,m,1,bad"]
+    assert flagged_merchants(["bad"], policies, merchants, events) == ["m"]
+
+
+def test_part_2_zero_ratio_threshold_is_inclusive_after_minimum():
+    policies = ["retail,RATIO,0,2"]
+    merchants = ["m,retail"]
+    events = ["ATTEMPT,a,m,1,ok", "ATTEMPT,b,m,1,ok"]
+    assert flagged_merchants(["bad"], policies, merchants, events) == ["m"]
+
+
+def test_part_3_successful_clear_id_blocks_later_attempt_with_same_id():
+    policies = ["retail,COUNT,1,1"]
+    merchants = ["m,retail"]
+    events = [
+        "ATTEMPT,a,m,1,bad", "CLEAR,shared,a", "ATTEMPT,shared,m,1,bad"
+    ]
+    assert flagged_merchants(["bad"], policies, merchants, events) == []
+
+
+def test_part_1_outcomes_are_case_sensitive_and_results_are_sorted():
+    policies = ["retail,COUNT,1,1"]
+    merchants = ["z,retail", "a,retail", "safe,retail"]
+    events = [
+        "ATTEMPT,z1,z,1,bad", "ATTEMPT,a1,a,1,bad",
+        "ATTEMPT,s1,safe,1,BAD",
+    ]
+    assert flagged_merchants(["bad"], policies, merchants, events) == ["a", "z"]

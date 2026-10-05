@@ -22,6 +22,16 @@ def test_part_1_aggregates_and_sorts_groups():
     assert create_payout_batches(events) == ["a_shop,EUR,1,20", "z_shop,USD,1,75"]
 
 
+def test_part_1_trims_fields_and_keeps_currency_groups_separate():
+    events = [
+        " PAYMENT , p1 , merchant , USD , 10 ",
+        "PAYMENT,p2,merchant,EUR,20",
+    ]
+    assert create_payout_batches(events) == [
+        "merchant,EUR,1,20", "merchant,USD,1,10"
+    ]
+
+
 def test_part_2_idempotency_and_invalid_events():
     events = [
         "PAYMENT,x,m,usd,100",       # invalid currency; x remains available
@@ -31,6 +41,16 @@ def test_part_2_idempotency_and_invalid_events():
         "broken",
     ]
     assert create_payout_batches(events) == ["m,USD,1,40"]
+
+
+def test_part_2_rejects_empty_ids_and_merchants():
+    events = [
+        "PAYMENT,,m,USD,100",
+        "PAYMENT,p1,,USD,100",
+        "PAYMENT,p2,m,US,100",
+        "PAYMENT,p3,m,USD,10",
+    ]
+    assert create_payout_batches(events) == ["m,USD,1,10"]
 
 
 def test_part_3_partial_refunds_and_over_refunds():
@@ -54,6 +74,20 @@ def test_part_3_ids_are_global_across_types():
     assert create_payout_batches(events) == ["m,USD,1,80"]
 
 
+def test_part_3_invalid_refund_does_not_reserve_its_event_id():
+    events = [
+        "PAYMENT,p1,m,USD,100",
+        "REFUND,r1,p1,101",
+        "REFUND,r1,p1,20",
+    ]
+    assert create_payout_batches(events) == ["m,USD,1,80"]
+
+
+def test_part_3_fully_refunded_group_is_not_emitted():
+    events = ["PAYMENT,p1,m,USD,100", "REFUND,r1,p1,100"]
+    assert create_payout_batches(events) == []
+
+
 def test_part_4_threshold_and_batch_splitting():
     events = [
         "PAYMENT,p1,m1,USD,250",
@@ -74,3 +108,14 @@ def test_part_4_exact_multiple_has_no_empty_batch():
         "m,USD,2,100",
     ]
 
+
+def test_part_4_threshold_is_inclusive():
+    assert create_payout_batches(["PAYMENT,p,m,USD,100"], 100, 0) == [
+        "m,USD,1,100"
+    ]
+
+
+def test_part_4_non_positive_options_mean_no_threshold_or_splitting():
+    assert create_payout_batches(["PAYMENT,p,m,USD,250"], -10, -1) == [
+        "m,USD,1,250"
+    ]
