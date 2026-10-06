@@ -53,6 +53,22 @@ def test_part_2_rejects_empty_ids_and_merchants():
     assert create_payout_batches(events) == ["m,USD,1,10"]
 
 
+def test_part_2_zero_payment_is_invalid_and_does_not_reserve_event_id():
+    events = [
+        "PAYMENT,retry,m,USD,0",
+        "PAYMENT,retry,m,USD,10",
+    ]
+    assert create_payout_batches(events) == ["m,USD,1,10"]
+
+
+def test_part_2_currency_must_contain_only_uppercase_ascii_letters():
+    events = [
+        "PAYMENT,retry,m,U$D,10",
+        "PAYMENT,retry,m,USD,10",
+    ]
+    assert create_payout_batches(events) == ["m,USD,1,10"]
+
+
 def test_part_3_partial_refunds_and_over_refunds():
     events = [
         "PAYMENT,p1,m,USD,100",
@@ -81,6 +97,24 @@ def test_part_3_invalid_refund_does_not_reserve_its_event_id():
         "REFUND,r1,p1,20",
     ]
     assert create_payout_batches(events) == ["m,USD,1,80"]
+
+
+def test_part_3_zero_refund_is_invalid_and_does_not_reserve_event_id():
+    events = [
+        "PAYMENT,p1,m,USD,10",
+        "REFUND,retry,p1,0",
+        "REFUND,retry,p1,5",
+    ]
+    assert create_payout_batches(events) == ["m,USD,1,5"]
+
+
+def test_part_3_refund_limit_is_scoped_to_the_referenced_payment():
+    events = [
+        "PAYMENT,small,m,USD,10",
+        "PAYMENT,other,m,USD,100",
+        "REFUND,r1,small,11",
+    ]
+    assert create_payout_batches(events) == ["m,USD,1,110"]
 
 
 def test_part_3_fully_refunded_group_is_not_emitted():
