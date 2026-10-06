@@ -1,0 +1,9 @@
+[
+  {
+    "after_sequence": 1,
+    "balances": {
+      "acct_a": 50,
+      "acct_b": 25
+    }
+  }
+]

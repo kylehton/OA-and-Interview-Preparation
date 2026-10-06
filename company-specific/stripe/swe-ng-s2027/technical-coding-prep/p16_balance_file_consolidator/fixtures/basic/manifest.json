@@ -1,0 +1,4 @@
+{
+  "files": ["batch_01.csv", "batch_02.csv"],
+  "minimum_abs_net": 0
+}

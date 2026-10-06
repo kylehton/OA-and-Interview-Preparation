@@ -1,0 +1,7 @@
+{
+  "response_days": 7,
+  "high_value": {
+    "USD": 4000,
+    "EUR": 6000
+  }
+}

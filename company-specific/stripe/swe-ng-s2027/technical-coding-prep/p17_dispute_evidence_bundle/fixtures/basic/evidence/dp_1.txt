@@ -1,0 +1,2 @@
+charge_id=ch_1
+Customer correspondence and shipping confirmation are attached.

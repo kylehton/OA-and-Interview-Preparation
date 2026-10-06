@@ -1,0 +1,5 @@
+{
+  "endpoint_file": "endpoints.csv",
+  "attempt_files": ["attempts_01.jsonl"],
+  "max_attempts": 3
+}

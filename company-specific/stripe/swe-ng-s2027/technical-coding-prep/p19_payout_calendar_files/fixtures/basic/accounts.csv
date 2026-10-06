@@ -1,0 +1,3 @@
+merchant_id,currency,delay_business_days,cutoff_utc_hour
+m1,USD,1,17
+"m,quoted",EUR,0,12

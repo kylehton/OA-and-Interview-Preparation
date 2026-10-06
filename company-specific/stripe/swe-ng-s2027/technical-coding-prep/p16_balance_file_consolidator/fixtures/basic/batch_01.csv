@@ -1,0 +1,4 @@
+transaction_id,account_id,currency,kind,amount,related_id
+c1,acct_a,USD,CREDIT,100,
+d1,acct_a,USD,DEBIT,20,
+q1,"acct,quoted",EUR,CREDIT,50,

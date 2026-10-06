@@ -1,0 +1,3 @@
+transaction_id,account_id,currency,kind,amount,related_id
+d2,acct_a,USD,DEBIT,10,
+c2,acct_b,USD,CREDIT,30,

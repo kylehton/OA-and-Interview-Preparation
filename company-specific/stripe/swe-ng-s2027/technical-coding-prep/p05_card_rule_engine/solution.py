@@ -4,6 +4,5 @@ from __future__ import annotations
 
 
 def validate_cards(cards: list[str], bin_ranges: list[str]) -> list[str]:
-    """Classify every card row in input order."""
+    """Validate cards and optionally route them using BIN rules."""
     raise NotImplementedError
-
