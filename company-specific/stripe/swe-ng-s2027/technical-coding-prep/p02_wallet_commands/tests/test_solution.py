@@ -77,9 +77,21 @@ def test_part_3_failed_reversal_is_atomic_and_retryable():
 
 def test_part_3_reversal_cannot_itself_be_reversed():
     commands = [
-        "CREATE a", "CREDIT c a 25", "REVERSE r c", "REVERSE x r", "BALANCE a"
+        "CREATE a", "CREDIT c a 25", "REVERSE r c", "CREDIT refill a 25",
+        "REVERSE x r", "BALANCE a",
     ]
-    assert process_commands(commands) == ["OK", "OK", "OK", "ERROR", "0"]
+    assert process_commands(commands) == ["OK", "OK", "OK", "OK", "ERROR", "25"]
+
+
+def test_part_3_duplicate_reversal_id_is_fully_atomic():
+    commands = [
+        "CREATE a", "CREDIT original a 100", "CREDIT used a 1",
+        "REVERSE used original", "BALANCE a",
+        "REVERSE fresh original", "BALANCE a",
+    ]
+    assert process_commands(commands) == [
+        "OK", "OK", "OK", "ERROR", "101", "OK", "1"
+    ]
 
 
 def test_part_3_transaction_ids_are_global_across_credit_and_debit():
