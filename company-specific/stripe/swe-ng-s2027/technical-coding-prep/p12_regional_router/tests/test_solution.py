@@ -18,6 +18,19 @@ def test_part_1_registry_and_health_validation():
     assert route_requests(commands) == ["OK", "ERROR", "ERROR", "OK", "ERROR"]
 
 
+def test_part_1_wrong_arity_and_health_value_are_atomic():
+    commands = [
+        "ADD a 1 extra", "ADD a 1", "HEALTH a MAYBE", "HEALTH a DOWN extra",
+        "HEALTH a DOWN",
+    ]
+    assert route_requests(commands) == ["ERROR", "OK", "ERROR", "ERROR", "OK"]
+
+
+def test_part_1_region_ids_cannot_contain_output_delimiters():
+    commands = ["ADD a>b 1", "ADD a,b 1", "ADD safe 1"]
+    assert route_requests(commands) == ["ERROR", "ERROR", "OK"]
+
+
 def test_part_2_routes_to_shortest_eligible_region():
     commands = [
         "ADD a 1", "ADD b 1", "ADD c 1",
@@ -99,4 +112,24 @@ def test_part_4_none_and_unknown_requests_cannot_be_released():
     ]
     assert route_requests(commands) == [
         "OK", "a,0,a", "NONE", "ERROR", "ERROR", "OK"
+    ]
+
+
+def test_part_2_invalid_link_replacement_preserves_previous_latency():
+    commands = [
+        "ADD a 1", "ADD b 1", "HEALTH a DOWN",
+        "LINK a b 4", "LINK a b 0", "LINK a a 1", "ROUTE r a",
+    ]
+    assert route_requests(commands) == [
+        "OK", "OK", "OK", "OK", "ERROR", "ERROR", "b,4,a>b"
+    ]
+
+
+def test_part_4_health_changes_preserve_load_until_release():
+    commands = [
+        "ADD a 1", "ROUTE first a", "HEALTH a DOWN", "HEALTH a UP",
+        "ROUTE full a", "RELEASE first", "ROUTE next a",
+    ]
+    assert route_requests(commands) == [
+        "OK", "a,0,a", "OK", "OK", "NONE", "OK", "a,0,a"
     ]

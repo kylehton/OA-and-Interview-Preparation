@@ -6,7 +6,8 @@
 
 Process whitespace-separated commands in order and return one response per
 command. Currency codes are exactly three uppercase ASCII letters. All amounts
-are integer minor units. Invalid commands return `ERROR` atomically.
+are integer minor units. Commands must have exactly the shown arity and all IDs
+must be non-empty. Invalid commands return `ERROR` atomically.
 
 ## Part 1 — Accounts and balances
 
@@ -28,15 +29,18 @@ CONVERT <transaction_id> <timestamp> <account_id> <from> <to> <amount>
 ```
 
 Rate timestamps are non-negative; currencies must differ; numerator and
-denominator are positive. Store every valid rate version. A conversion uses the
-registered direct rate with the greatest timestamp not exceeding the conversion
-timestamp:
+denominator are positive. Conversion and transfer timestamps must also be
+non-negative. Store every valid rate version. A conversion uses the registered
+direct rate with the greatest timestamp not exceeding the conversion timestamp.
+If multiple eligible versions in the same direction have the same timestamp,
+the one registered later in command order wins:
 
 ```python
 converted = amount * numerator // denominator
 ```
 
-It succeeds only with sufficient source balance and a positive converted value.
+It succeeds only when the two currencies differ, the source balance is
+sufficient, and the converted value is positive.
 
 ## Part 3 — Historical lookup and inverse rates
 
@@ -72,4 +76,3 @@ process_ledger([
 ])
 # ["OK", "OK", "OK", "OK", "OK", "0", "90"]
 ```
-

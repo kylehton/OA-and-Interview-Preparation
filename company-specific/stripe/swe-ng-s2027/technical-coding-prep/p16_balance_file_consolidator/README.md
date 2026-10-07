@@ -20,7 +20,7 @@ The manifest is a JSON object stored at `manifest_path`:
 `files` is required and must be a list. `minimum_abs_net` is optional and
 defaults to `0`; when present it must be a non-negative integer (not a Boolean).
 An unreadable or malformed manifest returns `[]` and does not write an output
-file.
+file. Non-string entries inside an otherwise valid `files` list are skipped.
 
 Resolve listed files relative to the manifest's directory. Only regular `.csv`
 files whose resolved paths remain inside that directory are eligible. Skip
@@ -66,7 +66,10 @@ allowed, but the transaction-ID rule prevents its valid rows from applying
 twice.
 
 A bad header skips the complete file. A malformed data row only skips that row.
-CSV fields may contain commas or quotes and returned rows must escape them.
+Every data row must have exactly six fields. CSV fields may contain commas or
+quotes and returned rows must escape them. Reading and UTF-8 decoding are
+file-atomic: an I/O or decode failure anywhere in a file skips that whole file,
+including rows read before the failure.
 
 ## Part 3 — Reversals across files
 
@@ -101,6 +104,8 @@ account_id,currency,credit_total,debit_total,net_amount
 ```
 
 Use `newline=""` while reading and writing CSV files.
+For a valid manifest that produces no report rows, still write the header-only
+output file. Invalid manifests are the cases that produce no output file.
 
 ## Example
 

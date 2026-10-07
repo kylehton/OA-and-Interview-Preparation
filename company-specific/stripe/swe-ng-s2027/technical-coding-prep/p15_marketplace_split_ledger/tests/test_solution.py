@@ -49,12 +49,12 @@ def test_part_3_refund_allocates_in_reverse_split_order():
     commands = [
         "ACCOUNT a", "ACCOUNT b", "CREATE p 100",
         "SPLIT p a 60", "SPLIT p b 40", "CAPTURE p",
-        "REFUND r1 p 50", "BALANCE a", "BALANCE b", "STATUS p",
-        "REFUND r2 p 50", "STATUS p",
+        "REFUND r1 p 50", "BALANCE a", "BALANCE b",
+        "REFUND r2 p 50", "BALANCE a", "BALANCE b",
     ]
     assert process_marketplace(commands) == [
         "OK", "OK", "OK", "OK", "OK", "OK", "OK",
-        "50", "0", "PARTIAL,100,50", "OK", "REFUNDED,100,0",
+        "50", "0", "OK", "0", "0",
     ]
 
 
@@ -62,11 +62,9 @@ def test_part_3_failed_multi_account_refund_is_fully_atomic():
     commands = [
         "ACCOUNT a", "ACCOUNT b", "CREATE p 100",
         "SPLIT p a 60", "SPLIT p b 40", "CAPTURE p",
-        "PAYOUT out a 60", "REFUND r p 50", "BALANCE a", "BALANCE b", "STATUS p",
+        "PAYOUT out a 60", "REFUND r p 50", "BALANCE a", "BALANCE b",
     ]
-    assert process_marketplace(commands)[-4:] == [
-        "ERROR", "0", "40", "CAPTURED,100,100"
-    ]
+    assert process_marketplace(commands)[-3:] == ["ERROR", "0", "40"]
 
 
 def test_part_4_dispute_can_make_balances_negative():
@@ -102,15 +100,15 @@ def test_part_1_account_and_payment_ids_use_separate_namespaces():
 def test_part_1_captured_payment_rejects_more_splits_and_second_capture():
     commands = [
         "ACCOUNT a", "ACCOUNT b", "CREATE p 10", "SPLIT p a 10", "CAPTURE p",
-        "SPLIT p b 1", "CAPTURE p", "BALANCE a", "BALANCE b", "STATUS p",
+        "SPLIT p b 1", "CAPTURE p", "BALANCE a", "BALANCE b",
     ]
     assert process_marketplace(commands) == [
         "OK", "OK", "OK", "OK", "OK", "ERROR", "ERROR",
-        "10", "0", "CAPTURED,10,10",
+        "10", "0",
     ]
 
 
-def test_part_2_operation_ids_are_global_across_payout_refund_and_dispute():
+def test_part_4_operation_ids_are_global_across_payout_refund_and_dispute():
     commands = [
         "ACCOUNT a", "CREATE p 100", "SPLIT p a 100", "CAPTURE p",
         "PAYOUT shared a 10", "REFUND shared p 10", "DISPUTE shared p 10",
@@ -135,12 +133,11 @@ def test_part_2_nonpositive_payout_does_not_reserve_operation_id():
 def test_part_3_over_refund_is_atomic_and_failed_id_is_reusable():
     commands = [
         "ACCOUNT a", "CREATE p 10", "SPLIT p a 10", "CAPTURE p",
-        "REFUND refund p 11", "BALANCE a", "STATUS p",
-        "REFUND refund p 10", "BALANCE a", "STATUS p",
+        "REFUND refund p 11", "BALANCE a",
+        "REFUND refund p 10", "BALANCE a",
     ]
     assert process_marketplace(commands) == [
-        "OK", "OK", "OK", "OK", "ERROR", "10", "CAPTURED,10,10",
-        "OK", "0", "REFUNDED,10,0",
+        "OK", "OK", "OK", "OK", "ERROR", "10", "OK", "0",
     ]
 
 
@@ -151,4 +148,25 @@ def test_part_4_failed_dispute_id_is_reusable():
     ]
     assert process_marketplace(commands) == [
         "OK", "OK", "OK", "OK", "ERROR", "OK", "DISPUTED,20,0"
+    ]
+
+
+def test_part_1_wrong_arity_and_nonpositive_amounts_are_atomic():
+    commands = [
+        "ACCOUNT a extra", "ACCOUNT a", "CREATE p 0", "CREATE p 10",
+        "SPLIT p a 0", "SPLIT p a 10", "CAPTURE p", "BALANCE a",
+    ]
+    assert process_marketplace(commands) == [
+        "ERROR", "OK", "ERROR", "OK", "ERROR", "OK", "OK", "10"
+    ]
+
+
+def test_part_4_status_tracks_draft_captured_and_refunded_states():
+    commands = [
+        "ACCOUNT a", "CREATE p 10", "STATUS p", "SPLIT p a 10",
+        "CAPTURE p", "STATUS p", "REFUND r p 10", "STATUS p",
+    ]
+    assert process_marketplace(commands) == [
+        "OK", "OK", "DRAFT,10,10", "OK", "OK",
+        "CAPTURED,10,10", "OK", "REFUNDED,10,0",
     ]

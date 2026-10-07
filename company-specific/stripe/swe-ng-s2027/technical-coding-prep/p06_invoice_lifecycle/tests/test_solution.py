@@ -37,10 +37,10 @@ def test_part_2_finalize_and_partial_payments():
         "FINALIZE inv",
         "PAY inv p1 40",
         "PAY inv p2 60",
-        "STATUS inv",
+        "PAY inv p3 1",
     ]
     assert process_invoices(commands) == [
-        "OK", "ERROR", "OK", "OK", "OK", "OK", "PAID,100,100"
+        "OK", "ERROR", "OK", "OK", "OK", "OK", "ERROR"
     ]
 
 
@@ -104,10 +104,45 @@ def test_part_1_invalid_create_and_add_do_not_reserve_identifiers():
 def test_part_2_finalized_invoice_rejects_new_lines():
     commands = [
         "CREATE inv c USD", "ADD inv first 10", "FINALIZE inv",
-        "ADD inv second 20", "TOTAL inv", "STATUS inv",
+        "ADD inv second 20", "TOTAL inv",
     ]
     assert process_invoices(commands) == [
-        "OK", "OK", "OK", "ERROR", "10", "OPEN,10,0"
+        "OK", "OK", "OK", "ERROR", "10"
+    ]
+
+
+def test_part_1_exact_arity_and_ascii_currency_are_required():
+    commands = [
+        "CREATE too many USD EXTRA",
+        "CREATE inv customer ÉUR",
+        "CREATE inv customer USD",
+        "ADD inv line 10 EXTRA",
+        "ADD inv line 10",
+        "TOTAL inv EXTRA",
+        "TOTAL inv",
+    ]
+    assert process_invoices(commands) == [
+        "ERROR", "ERROR", "OK", "ERROR", "OK", "ERROR", "10"
+    ]
+
+
+def test_part_3_status_reports_each_state():
+    commands = [
+        "CREATE draft c USD", "STATUS draft", "ADD draft x 10",
+        "FINALIZE draft", "STATUS draft", "PAY draft p 10", "STATUS draft",
+    ]
+    assert process_invoices(commands) == [
+        "OK", "DRAFT,0,0", "OK", "OK", "OPEN,10,0", "OK", "PAID,10,10"
+    ]
+
+
+def test_part_4_full_refund_does_not_erase_payment_history_for_voiding():
+    commands = [
+        "CREATE inv c USD", "ADD inv x 10", "FINALIZE inv", "PAY inv p 10",
+        "REFUND inv r 10", "VOID inv", "STATUS inv",
+    ]
+    assert process_invoices(commands) == [
+        "OK", "OK", "OK", "OK", "OK", "ERROR", "OPEN,10,0"
     ]
 
 

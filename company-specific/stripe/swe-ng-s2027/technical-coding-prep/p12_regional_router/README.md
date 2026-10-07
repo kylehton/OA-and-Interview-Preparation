@@ -5,7 +5,11 @@
 **Entry point:** `route_requests(commands) -> list[str]`
 
 Process whitespace-separated commands in order and return one response per
-command. Invalid commands return `ERROR` without changing state.
+command. Commands must have exactly the shown arity and all IDs must be
+non-empty. Invalid commands return `ERROR` without changing state.
+
+Region IDs may not contain `,` or `>` because those characters delimit the
+route response and its path. Request IDs have no additional character rule.
 
 ## Part 1 — Region registry and health
 
@@ -25,7 +29,8 @@ ROUTE <request_id> <origin_region>
 ```
 
 Links are undirected. Both distinct regions must exist. A later valid `LINK` for
-the same pair replaces its latency.
+the same pair replaces its latency. An invalid replacement leaves the existing
+link unchanged.
 
 A destination is eligible when it is `UP`, has `load < capacity`, and is
 reachable from the known origin. The origin itself is reachable at latency `0`.
@@ -46,6 +51,9 @@ A successful route increments its destination load by one. The first valid
 ID returns its cached response and never changes load, even if the origin differs.
 An `ERROR` does not reserve the ID.
 
+Changing a region's health does not reset its load. Existing routed requests
+continue occupying capacity until released.
+
 ## Part 4 — Release and tie handling
 
 ```text
@@ -59,4 +67,3 @@ returns its cached result without reclaiming capacity.
 
 Use Dijkstra's algorithm or an equivalent shortest-path method. A linear scan
 over regions after computing distances is sufficient.
-

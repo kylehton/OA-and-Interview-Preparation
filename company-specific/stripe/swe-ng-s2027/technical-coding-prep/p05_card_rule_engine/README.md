@@ -4,16 +4,13 @@
 **Target:** 50 minutes  
 **Entry point:** `validate_cards(cards, bin_ranges) -> list[str]`
 
-Build this function in four cumulative parts. Each part introduces one new
-decision layer. In particular, Parts 1 and 2 are validation-only: they do not
-parse BIN ranges and do not produce a network.
+Inputs and outputs are plain comma-delimited strings. Fields are guaranteed not
+to contain commas, quotation marks, or newlines, so CSV escaping is outside the
+scope of this problem. You may parse a row with `row.split(",")` and format a
+response with an f-string or `",".join(fields)`. Preserve card input order and
+return one response for every card row.
 
-Use Python's `csv` module (or equivalent CSV semantics), not a raw comma split.
-Return one CSV-formatted response for every card row, preserving card input
-order. Use normal CSV escaping for output fields containing commas or quotes.
-
-Assume payment IDs are unique in well-formed input. This exercise does not ask
-you to store payments, check duplicate IDs, or retain state between calls.
+Assume payment IDs are unique in well-formed input.
 
 ## Part 1 — Parse, normalize, and validate
 
@@ -26,7 +23,7 @@ Each card row describes one payment attempt using one card:
 <payment_id>,<card_number>,<country>
 ```
 
-Trim surrounding whitespace from every CSV field. In `card_number`, also remove
+Trim surrounding whitespace from every field. In `card_number`, also remove
 every ASCII space and hyphen. For example:
 
 ```text
@@ -43,13 +40,12 @@ A normalized row is valid when:
 Country is an input check. Trim it, but do not uppercase, truncate, pad, or
 otherwise repair it. `US` and ` US ` are valid shapes; `us`, `U`, `USA`, and
 `ÉU` are invalid. You do not need a real country registry, so `ZZ` is valid.
-Part 4 will use this already-validated field for routing.
 
 Return exactly one of these rows:
 
 | Condition | Response |
 |---|---|
-| Row does not have exactly three CSV fields | `ERROR` |
+| Row does not have exactly three fields | `ERROR` |
 | Payment ID is empty after trimming | `ERROR` |
 | Card number or country has an invalid format | `<payment_id>,NONE,INVALID_FORMAT` |
 | All Part 1 checks pass | `<payment_id>,NONE,VALID` |
@@ -104,7 +100,7 @@ A **card network** is the payment route used to carry a card transaction. Visa
 and Mastercard are familiar examples, but this problem uses whatever label is
 provided by the input rule; no external list of networks is required.
 
-Part 3 range rows have exactly three CSV fields:
+Part 3 range rows have exactly three comma-delimited fields:
 
 ```text
 <start_bin>,<end_bin>,<network>
@@ -126,7 +122,7 @@ the Part 2 behavior. A non-empty list containing only invalid rules is still
 routing mode, so a valid card is `UNSUPPORTED`.
 
 The selected network is the trimmed label from the matching rule. Preserve its
-case and punctuation and apply normal CSV quoting in the response.
+case.
 
 Example:
 
@@ -146,8 +142,11 @@ Part 4 adds an optional fourth range field:
 <start_bin>,<end_bin>,<network>,<countries>
 ```
 
-Three-field Part 3 rules remain valid and apply to every valid country. For a
-four-field rule, `countries` must be either:
+Every three-field Part 3 rule remains valid and applies to every valid country.
+It is exactly equivalent to adding `,*` as its fourth field. This behavior does
+not depend on the network's name: `GLOBAL` is not a reserved or special value.
+
+For a four-field rule, `countries` must be either:
 
 - `*`, meaning every valid country; or
 - a `|`-separated list such as `US|CA`.
@@ -171,7 +170,7 @@ Example:
 ```python
 cards = ["pay_1,4242424242424242,US"]
 ranges = [
-    "400000,499999,GLOBAL",
+    "400000,499999,FALLBACK_ROUTE",
     "424000,424999,DOMESTIC,US|CA",
 ]
 

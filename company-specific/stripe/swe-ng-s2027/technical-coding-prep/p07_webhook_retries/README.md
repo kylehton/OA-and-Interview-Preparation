@@ -6,7 +6,8 @@
 
 Inputs are comma-separated fields with surrounding whitespace trimmed. This
 function analyzes historical attempts; it does not perform network calls.
-`max_attempts` is guaranteed positive.
+Rows with the wrong number of fields are invalid. `max_attempts` is guaranteed
+positive.
 
 ## Part 1 — Endpoints and completed delivery
 
@@ -29,6 +30,16 @@ Timestamps are non-negative integers and status codes are integers from 100 to
 599. IDs must be non-empty and the endpoint must exist. An HTTP 2xx status
 completes that `(event_id, endpoint_id)` pair, so it produces no plan row.
 
+Part 1 cases have at most one valid failed attempt per incomplete pair. Schedule
+that pair at `timestamp + base_delay` and return:
+
+```text
+RETRY,<event_id>,<endpoint_id>,<scheduled_at>,1
+```
+
+Sort these rows by scheduled time, event ID, then endpoint ID. Part 2
+generalizes the same row to multiple failures.
+
 ## Part 2 — Exponential backoff
 
 For an incomplete pair with `n` valid failed attempts, schedule from its latest
@@ -39,13 +50,13 @@ delay = min(base_delay * 2 ** (n - 1), max_delay)
 scheduled_at = latest_timestamp + delay
 ```
 
-Return:
+Return the same row shape with the complete failure count:
 
 ```text
 RETRY,<event_id>,<endpoint_id>,<scheduled_at>,<failure_count>
 ```
 
-Sort retries by scheduled time, event ID, then endpoint ID.
+Keep the Part 1 retry sorting rule.
 
 ## Part 3 — Retry-After
 
@@ -62,8 +73,10 @@ or an invalid sixth field, makes that attempt invalid.
 ## Part 4 — Idempotency and dead letters
 
 Attempt IDs are globally unique; only the first valid row using an ID counts.
-Invalid rows do not reserve IDs. Attempts are evaluated chronologically, not in
-input order. If any valid attempt for a pair is 2xx, the pair is complete.
+"First" means first in attempt input order, before chronological analysis.
+Invalid rows do not reserve IDs. After idempotency is resolved, accepted
+attempts are evaluated chronologically for latest-attempt selection. If any
+valid attempt for a pair is 2xx, the pair is complete.
 
 When an incomplete pair has at least `max_attempts` failures, output instead:
 
@@ -73,4 +86,3 @@ DEAD,<event_id>,<endpoint_id>,<failure_count>
 
 All retry rows come first. Append dead-letter rows sorted by event ID and then
 endpoint ID.
-

@@ -86,3 +86,27 @@ def test_part_4_risky_valid_singleton_is_reviewed():
     assert analyze_identities(["e,1,z,d,-"], ["z", "absent"], 10) == [
         "REVIEW,z"
     ]
+
+
+def test_part_3_empty_present_identifier_and_wrong_arity_do_not_reserve_id():
+    events = [
+        "same,1,a,,card",
+        "same,1,a,device,-,extra",
+        "same,1,a,device,-",
+    ]
+    assert analyze_identities(events) == ["SAFE,a"]
+
+
+def test_part_3_output_delimiter_is_not_allowed_inside_user_id():
+    events = ["bad,1,a|b,device,-", "good,2,z,device,-"]
+    assert analyze_identities(events) == ["SAFE,z"]
+
+
+def test_part_4_risky_user_matching_is_case_sensitive():
+    events = ["e,1,A,device,-"]
+    assert analyze_identities(events, ["a"], 0) == ["SAFE,A"]
+
+
+def test_part_1_csv_quoted_user_id_is_escaped_in_output():
+    events = ['e1,1,"alice,inc",device,-', "e2,2,bob,device,-"]
+    assert analyze_identities(events) == ['SAFE,"alice,inc|bob"']

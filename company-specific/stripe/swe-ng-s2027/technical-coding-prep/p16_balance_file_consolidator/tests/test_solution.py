@@ -3,6 +3,8 @@ import json
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 
+import pytest
+
 
 def _load():
     spec = spec_from_file_location("p16_solution", Path(__file__).parents[1] / "solution.py")
@@ -38,7 +40,7 @@ def _bundle(
     return manifest_path
 
 
-def test_part_1_reads_multiple_files_and_sorts_csv_output():
+def test_part_2_reads_multiple_files_and_sorts_csv_output():
     assert build_balance_report(FIXTURES / "manifest.json") == [
         '"acct,quoted",EUR,50,0,50',
         "acct_a,USD,100,30,70",
@@ -106,6 +108,33 @@ def test_part_2_unsafe_path_and_malformed_manifest_are_ignored(tmp_path):
     assert not output.exists()
 
 
+def test_part_2_symlink_escape_is_skipped(tmp_path):
+    outside = tmp_path / "outside.csv"
+    outside.write_text(HEADER + "x,a,USD,CREDIT,100,\n", encoding="utf-8")
+    bundle = tmp_path / "bundle"
+    bundle.mkdir()
+    try:
+        (bundle / "linked.csv").symlink_to(outside)
+    except OSError:
+        pytest.skip("symlinks are not available on this platform")
+
+    manifest = _bundle(bundle, {}, listed=["linked.csv"])
+    assert build_balance_report(manifest) == []
+
+
+def test_part_2_partially_undecodable_file_is_skipped_atomically(tmp_path):
+    root = tmp_path / "bundle"
+    manifest = _bundle(
+        root,
+        {"good.csv": HEADER + "same,a,USD,CREDIT,7,\n"},
+        listed=["bad.csv", "good.csv"],
+    )
+    (root / "bad.csv").write_bytes(
+        HEADER.encode("utf-8") + b"same,a,USD,CREDIT,100,\n\xff"
+    )
+    assert build_balance_report(manifest) == ["a,USD,7,0,7"]
+
+
 def test_part_2_boolean_threshold_makes_manifest_invalid(tmp_path):
     manifest = _bundle(
         tmp_path / "bundle",
@@ -116,6 +145,27 @@ def test_part_2_boolean_threshold_makes_manifest_invalid(tmp_path):
         encoding="utf-8",
     )
     assert build_balance_report(manifest) == []
+
+
+def test_part_2_wrong_files_type_and_negative_threshold_are_invalid(tmp_path):
+    root = tmp_path / "bundle"
+    root.mkdir()
+    manifest = root / "manifest.json"
+    output = tmp_path / "report.csv"
+
+    manifest.write_text(
+        json.dumps({"files": "batch.csv", "minimum_abs_net": 0}),
+        encoding="utf-8",
+    )
+    assert build_balance_report(manifest, output) == []
+    assert not output.exists()
+
+    manifest.write_text(
+        json.dumps({"files": [], "minimum_abs_net": -1}),
+        encoding="utf-8",
+    )
+    assert build_balance_report(manifest, output) == []
+    assert not output.exists()
 
 
 def test_part_3_reverses_credit_and_debit_gross_totals(tmp_path):
@@ -195,3 +245,34 @@ def test_part_4_writes_header_and_exact_returned_rows(tmp_path):
         ["acct_b", "USD", "30", "0", "30"],
     ]
     assert len(rows) == 3
+
+
+def test_part_2_wrong_arity_row_does_not_reserve_transaction_id(tmp_path):
+    rows = (
+        HEADER
+        + "same,a,USD,CREDIT,10,,extra\n"
+        + "same,a,USD,CREDIT,10,\n"
+    )
+    manifest = _bundle(tmp_path / "bundle", {"batch.csv": rows})
+    assert build_balance_report(manifest) == ["a,USD,10,0,10"]
+
+
+def test_part_2_non_string_file_entries_are_skipped(tmp_path):
+    manifest = _bundle(
+        tmp_path / "bundle",
+        {"batch.csv": HEADER + "c,a,USD,CREDIT,10,\n"},
+    )
+    manifest.write_text(
+        json.dumps({"files": [None, 7, "batch.csv"], "minimum_abs_net": 0}),
+        encoding="utf-8",
+    )
+    assert build_balance_report(manifest) == ["a,USD,10,0,10"]
+
+
+def test_part_4_valid_empty_report_still_writes_header(tmp_path):
+    manifest = _bundle(tmp_path / "bundle", {"batch.csv": HEADER})
+    output = tmp_path / "nested" / "report.csv"
+    assert build_balance_report(manifest, output) == []
+    assert output.read_text(encoding="utf-8") == (
+        "account_id,currency,credit_total,debit_total,net_amount\n"
+    )

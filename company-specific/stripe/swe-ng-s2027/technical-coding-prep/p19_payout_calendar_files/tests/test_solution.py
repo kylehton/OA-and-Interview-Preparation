@@ -33,7 +33,7 @@ def _files(
     return account_path, capture_path, holiday_path
 
 
-def test_part_1_reads_csv_tsv_and_text_fixture():
+def test_part_3_reads_complete_csv_tsv_and_text_fixture():
     assert schedule_payout_files(
         FIXTURES / "accounts.csv",
         FIXTURES / "captures.tsv",
@@ -68,6 +68,17 @@ def test_part_1_first_valid_account_configuration_wins(tmp_path):
     assert schedule_payout_files(*paths) == ["2026-01-05,m,USD,1,10"]
 
 
+def test_part_1_wrong_arity_rows_do_not_reserve_configuration_or_capture_ids(tmp_path):
+    accounts = ACCOUNT_HEADER + "m,USD,0,23,extra\nm,USD,0,23\n"
+    captures = (
+        CAPTURE_HEADER
+        + "same\tm\tUSD\t10\t2026-01-05T10:00:00Z\textra\n"
+        + "same\tm\tUSD\t10\t2026-01-05T10:00:00Z\n"
+    )
+    paths = _files(tmp_path / "bundle", accounts, captures)
+    assert schedule_payout_files(*paths) == ["2026-01-05,m,USD,1,10"]
+
+
 def test_part_2_offset_is_converted_to_utc_before_cutoff(tmp_path):
     accounts = ACCOUNT_HEADER + "m,USD,0,10\n"
     captures = CAPTURE_HEADER + "a\tm\tUSD\t10\t2026-01-05T11:00:00+02:00\n"
@@ -92,6 +103,24 @@ def test_part_2_exact_cutoff_moves_to_next_calendar_day_then_rolls(tmp_path):
     captures = CAPTURE_HEADER + "a\tm\tUSD\t10\t2026-01-09T17:00:00Z\n"
     paths = _files(tmp_path / "bundle", accounts, captures)
     assert schedule_payout_files(*paths) == ["2026-01-12,m,USD,1,10"]
+
+
+def test_part_2_utc_conversion_happens_before_date_and_cutoff_selection(tmp_path):
+    accounts = ACCOUNT_HEADER + "m,USD,0,0\n"
+    captures = CAPTURE_HEADER + "a\tm\tUSD\t10\t2026-01-05T00:30:00+02:00\n"
+    paths = _files(tmp_path / "bundle", accounts, captures)
+    assert schedule_payout_files(*paths) == ["2026-01-05,m,USD,1,10"]
+
+
+def test_part_2_fractional_seconds_are_invalid_and_do_not_reserve_id(tmp_path):
+    accounts = ACCOUNT_HEADER + "m,USD,0,23\n"
+    captures = (
+        CAPTURE_HEADER
+        + "same\tm\tUSD\t10\t2026-01-05T10:00:00.5Z\n"
+        + "same\tm\tUSD\t10\t2026-01-05T10:00:00Z\n"
+    )
+    paths = _files(tmp_path / "bundle", accounts, captures)
+    assert schedule_payout_files(*paths) == ["2026-01-05,m,USD,1,10"]
 
 
 def test_part_3_delay_skips_weekend_and_holiday(tmp_path):
@@ -147,6 +176,17 @@ def test_part_4_bad_header_returns_empty_without_writing_output(tmp_path):
     assert not output.exists()
 
 
+def test_part_4_bad_capture_header_returns_empty_without_writing_output(tmp_path):
+    paths = _files(
+        tmp_path / "bundle",
+        ACCOUNT_HEADER,
+        "capture_id\tamount\na\t10\n",
+    )
+    output = tmp_path / "report.csv"
+    assert schedule_payout_files(*paths, output) == []
+    assert not output.exists()
+
+
 def test_part_4_missing_required_holiday_file_returns_empty(tmp_path):
     paths = _files(
         tmp_path / "bundle",
@@ -155,6 +195,18 @@ def test_part_4_missing_required_holiday_file_returns_empty(tmp_path):
     )
     paths[2].unlink()
     assert schedule_payout_files(*paths) == []
+
+
+def test_part_4_non_utf8_required_file_returns_empty_without_output(tmp_path):
+    paths = _files(
+        tmp_path / "bundle",
+        ACCOUNT_HEADER + "m,USD,0,23\n",
+        CAPTURE_HEADER,
+    )
+    paths[2].write_bytes(b"\xff\xfe")
+    output = tmp_path / "report.csv"
+    assert schedule_payout_files(*paths, output) == []
+    assert not output.exists()
 
 
 def test_part_4_writes_quoted_csv_output(tmp_path):
@@ -172,3 +224,12 @@ def test_part_4_writes_quoted_csv_output(tmp_path):
     ]
     assert parsed[-1] == ["2026-01-13", "m,quoted", "EUR", "1", "20"]
     assert len(rows) == 3
+
+
+def test_part_4_valid_empty_schedule_still_writes_header(tmp_path):
+    paths = _files(tmp_path / "bundle", ACCOUNT_HEADER, CAPTURE_HEADER)
+    output = tmp_path / "nested" / "schedule.csv"
+    assert schedule_payout_files(*paths, output) == []
+    assert output.read_text(encoding="utf-8") == (
+        "settlement_date,merchant_id,currency,capture_count,total_amount\n"
+    )

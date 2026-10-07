@@ -7,7 +7,10 @@
 Return one response per whitespace-separated command. Time-bearing commands are
 guaranteed to arrive with globally non-decreasing timestamps. Before executing
 one, apply all scheduled releases due at or before its timestamp. Invalid
-commands return `ERROR` atomically.
+commands return `ERROR` atomically. Commands must have exactly the shown arity,
+merchant and mutation IDs must be non-empty, and timestamps must be
+non-negative integers. Due releases occur before validating the rest of a
+time-bearing command, so they still occur when that command returns `ERROR`.
 
 ## Part 1 — Pending charges
 
@@ -36,6 +39,10 @@ reserved_share = remaining - available_share
 At `charge_timestamp + 2 * hold_seconds`, move its remaining reserved share to
 available. With a zero hold, both transitions occur immediately as part of the
 successful `CHARGE` command.
+
+The releases happen before a command at the same timestamp. Thus a `REFUND` at
+the first release timestamp follows the post-release rule, not the pending rule;
+a refund at the second release timestamp must be funded entirely from available.
 
 ## Part 3 — Payouts
 
@@ -76,4 +83,3 @@ process_settlements([
 ])
 # ["OK", "OK", "0,20,80", "0,0,100"]
 ```
-

@@ -5,7 +5,9 @@
 **Entry point:** `generate_invoices(plans, subscriptions, usage, period_start, period_end) -> list[str]`
 
 All inputs are comma-separated with trimmed fields. Days and billing intervals
-are integer and inclusive. Return `[]` when `period_end < period_start`.
+are integer and inclusive. Every plan, subscription, and usage row must have
+exactly the number of fields shown for it. Return `[]` when
+`period_end < period_start`.
 
 ## Part 1 — Base subscription charge
 
@@ -24,10 +26,10 @@ Subscription rows:
 <subscription_id>,<customer_id>,<plan_id>,<start_day>,<end_day_or_dash>
 ```
 
-IDs must be non-empty, the plan must exist, and a numeric end must be at least
-the start. `-` means no end. The first valid subscription ID wins. Return a row
-for every subscription that overlaps the billing period, sorted by subscription
-ID:
+Subscription and customer IDs must be non-empty, the plan must exist, and a
+numeric end must be at least the start. `-` means no end. The first valid
+subscription ID wins. Return a row for every subscription that overlaps the
+billing period, sorted by subscription ID:
 
 ```text
 <subscription_id>,<customer_id>,<active_days>,<usage_units>,<amount>
@@ -52,8 +54,10 @@ amount = period_fee + max(0, usage - included_units) * overage_price_per_unit
 
 Event IDs are globally unique among valid events. The first valid event reserves
 its ID even when it falls outside the current billing period. A row is valid
-when it is well formed, references a known subscription, and its day is inside
-that subscription's lifetime. Invalid rows do not reserve IDs.
+when it has exactly four fields, has a non-empty event ID, references a known
+subscription, uses a positive unit count, and its day is inside that
+subscription's lifetime. Invalid rows do not reserve IDs. Resolve duplicate
+event IDs in usage input order.
 
 ## Part 4 — Inclusive proration
 
@@ -77,4 +81,3 @@ usage = ["12,u1,s1,150"]
 generate_invoices(plans, subscriptions, usage, 1, 30)
 # ["s1,c1,10,150,1100"]
 ```
-

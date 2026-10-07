@@ -22,6 +22,8 @@ merchant_id,currency,delay_business_days,cutoff_utc_hour
 IDs must be non-empty, currency exactly three uppercase ASCII letters, delay a
 non-negative integer, and cutoff an integer from `0` through `23`. Configuration
 is keyed by `(merchant_id, currency)`; the first valid row for a key wins.
+Trim every parsed account and capture field. Account rows must have exactly four
+fields and capture rows exactly five.
 
 The capture file uses tabs and has this exact header:
 
@@ -39,6 +41,11 @@ normal CSV-formatted rows sorted in that order:
 <settlement_date>,<merchant_id>,<currency>,<capture_count>,<total_amount>
 ```
 
+Part 1 cases use `Z` timestamps before the cutoff, a zero delay, business-day
+capture dates, and no holidays; for those baseline cases the settlement date is
+the UTC capture date. Parts 2 and 3 extend that calculation without changing
+the output shape.
+
 ## Part 2 — UTC conversion and cutoff
 
 `captured_at` must be an ISO timestamp with seconds and either `Z` or a numeric
@@ -48,6 +55,11 @@ UTC offset, for example:
 2026-01-05T16:30:00Z
 2026-01-05T18:30:00+02:00
 ```
+
+The accepted forms are exactly `YYYY-MM-DDTHH:MM:SSZ` and
+`YYYY-MM-DDTHH:MM:SS+HH:MM` (or `-HH:MM`). Fractional seconds, missing seconds,
+missing offsets, lowercase `z`, and invalid calendar or offset values are
+rejected.
 
 Convert it to UTC before applying the account cutoff. When the UTC time is
 strictly before `cutoff_utc_hour:00:00`, the base date is its UTC date. At or
@@ -80,5 +92,8 @@ settlement_date,merchant_id,currency,capture_count,total_amount
 
 Use `newline=""` for CSV/TSV reading and writing. CSV quoting is part of the
 returned answer.
+
+For valid required inputs that produce no schedule rows, still write the
+header-only output file. A required-file failure produces no output file.
 
 See `fixtures/basic/` for a bundle containing CSV, TSV, and text inputs.

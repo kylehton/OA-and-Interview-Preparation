@@ -18,8 +18,10 @@ Policy rows:
 <category>,COUNT,<risky_count_threshold>,<minimum_attempts>
 ```
 
-Threshold and minimum must be positive integers. The first valid policy for a
-category wins.
+The category must be non-empty. Threshold and minimum must be positive integers.
+Every policy row must have exactly four fields. The first valid policy for a
+category wins. The minimum attempt count must also be positive for the policy
+types introduced later.
 
 Merchant rows:
 
@@ -27,8 +29,8 @@ Merchant rows:
 <merchant_id>,<category>
 ```
 
-IDs must be non-empty and the category must have a valid policy. The first valid
-merchant row for an ID wins.
+Every merchant row must have exactly two fields. IDs must be non-empty and the
+category must have a valid policy. The first valid merchant row for an ID wins.
 
 Attempt events:
 
@@ -36,9 +38,12 @@ Attempt events:
 ATTEMPT,<event_id>,<merchant_id>,<positive_amount>,<outcome>
 ```
 
-An outcome is risky exactly when it occurs in `risky_outcomes`. Under `COUNT`,
-a merchant is flagged when it has at least `minimum_attempts` attempts and its
-risky-attempt count is at least the threshold.
+An attempt must have exactly five fields, non-empty event and merchant IDs, a
+known merchant, a positive amount, and a non-empty outcome. An outcome is risky
+exactly when it occurs in `risky_outcomes`; every other non-empty outcome is
+valid but safe. Under `COUNT`, a merchant is flagged when it has at least
+`minimum_attempts` attempts and its risky-attempt count is at least the
+threshold.
 
 ## Part 2 — Ratio policies
 
@@ -64,6 +69,8 @@ CLEAR,<event_id>,<attempt_event_id>
 A clear event succeeds only when it references an existing risky attempt that
 has not already been cleared. The attempt remains in the total denominator but
 no longer contributes risky count or amount.
+
+Clear rows must have exactly three fields and non-empty IDs.
 
 All successful attempt and clear event IDs share one global namespace. The first
 successful event reserves an ID. Invalid events do not reserve IDs.
@@ -95,4 +102,3 @@ events = [
 
 flagged_merchants(risky, policies, merchants, events)  # ["m1"]
 ```
-

@@ -4,14 +4,18 @@
 **Target:** 60 minutes  
 **Entry point:** `analyze_identities(events, risky_users=None, window_seconds=None) -> list[str]`
 
-Use comma-separated parsing with trimmed fields. Event rows are:
+Use normal CSV parsing and formatting, including quoted fields, and trim parsed
+input fields. Event rows are:
 
 ```text
 <event_id>,<timestamp>,<user_id>,<device_id_or_dash>,<card_id_or_dash>
 ```
 
 Timestamps are non-negative integers. Event and user IDs must be non-empty. `-`
-means an absent identifier; at least one of device or card must be present.
+means an absent identifier; otherwise device and card IDs must be non-empty.
+At least one of device or card must be present, and every row must have exactly
+five fields. Because `|` separates users in output, a user ID containing `|` is
+invalid.
 
 ## Part 1 — Shared-device components
 
@@ -26,7 +30,8 @@ SAFE,<user_1>|<user_2>|...
 ```
 
 Sort users within a component. Sort component rows by their first user and then
-by the complete user list.
+by the complete user list. The joined user list is the second CSV field, so it
+must be quoted normally when it contains a comma or quote.
 
 ## Part 2 — Cards and transitive closure
 
@@ -37,7 +42,8 @@ union-find is a natural fit.
 ## Part 3 — Event idempotency and malformed rows
 
 Event IDs are global. Only the first valid row with an ID is included; invalid
-rows do not reserve IDs. Repeated events from the same user are harmless.
+rows do not reserve IDs. Resolve duplicates in event input order. Repeated
+events from the same user are harmless.
 
 ## Part 4 — Time window and risky propagation
 
@@ -49,6 +55,7 @@ Transitivity still applies, so a component can span more time than the window.
 
 If any member occurs in `risky_users`, label the entire component `REVIEW`
 instead of `SAFE`. Ignore risky users absent from valid events.
+Risky-user matching is exact and case-sensitive.
 
 ## Example
 
@@ -62,4 +69,3 @@ events = [
 analyze_identities(events, ["carol"], 5)
 # ["REVIEW,alice|bob|carol"]
 ```
-

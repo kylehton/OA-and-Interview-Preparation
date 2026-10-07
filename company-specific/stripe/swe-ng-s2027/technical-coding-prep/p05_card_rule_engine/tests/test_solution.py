@@ -48,11 +48,6 @@ def test_part_1_card_and_country_format_failures_are_explicit():
     ]
 
 
-def test_part_1_csv_quoted_payment_id_is_returned_with_csv_quoting():
-    cards = ['"order,one",4242424242424242,US']
-    assert validate_cards(cards, []) == ['"order,one",NONE,VALID']
-
-
 def test_part_2_luhn_pass_keeps_validation_success_and_failure_is_explicit():
     cards = [
         "good,4242424242424242,US",
@@ -67,6 +62,17 @@ def test_part_2_luhn_pass_keeps_validation_success_and_failure_is_explicit():
 def test_part_2_format_failure_precedes_luhn():
     cards = ["bad_format,424242424242424x,US"]
     assert validate_cards(cards, []) == ["bad_format,NONE,INVALID_FORMAT"]
+
+
+def test_part_2_luhn_is_not_equivalent_to_an_even_last_digit():
+    cards = [
+        "invalid_even,4242424242424240,US",
+        "valid_odd,4000000000000051,US",
+    ]
+    assert validate_cards(cards, []) == [
+        "invalid_even,NONE,INVALID_LUHN",
+        "valid_odd,NONE,VALID",
+    ]
 
 
 def test_part_3_routes_by_six_digit_bin_and_inclusive_boundaries():
@@ -104,10 +110,16 @@ def test_part_3_no_matching_range_is_unsupported():
     assert validate_cards(cards, ranges) == ["card,NONE,UNSUPPORTED"]
 
 
-def test_part_3_network_is_the_selected_trimmed_csv_label():
+def test_part_3_range_may_cross_a_leading_digit_boundary():
+    cards = ["card,4000000000000002,US"]
+    ranges = ["399999,400000,CROSS_BOUNDARY"]
+    assert validate_cards(cards, ranges) == ["card,CROSS_BOUNDARY,VALID"]
+
+
+def test_part_3_network_is_the_selected_trimmed_label():
     cards = ["card,4242424242424242,US"]
-    ranges = ['424242,424242,"  DOMESTIC,ROUTE  "']
-    assert validate_cards(cards, ranges) == ['card,"DOMESTIC,ROUTE",VALID']
+    ranges = ["424242,424242,  DOMESTIC_ROUTE  "]
+    assert validate_cards(cards, ranges) == ["card,DOMESTIC_ROUTE,VALID"]
 
 
 def test_part_4_country_restrictions_and_unrestricted_three_field_rules():
@@ -116,12 +128,12 @@ def test_part_4_country_restrictions_and_unrestricted_three_field_rules():
         "gb,4242424242424242,GB",
     ]
     ranges = [
-        "400000,499999,GLOBAL",
+        "400000,499999,FALLBACK_ROUTE",
         "424000,424999,NORTH_AMERICA,US|CA",
     ]
     assert validate_cards(cards, ranges) == [
         "us,NORTH_AMERICA,VALID",
-        "gb,GLOBAL,VALID",
+        "gb,FALLBACK_ROUTE,VALID",
     ]
 
 
@@ -139,10 +151,10 @@ def test_part_4_smallest_eligible_span_then_input_order_wins():
 def test_part_4_ineligible_narrow_rule_does_not_block_wider_rule():
     cards = ["card,4242424242424242,GB"]
     ranges = [
-        "400000,499999,GLOBAL,*",
+        "400000,499999,FALLBACK_ROUTE,*",
         "424200,424299,US_ONLY,US",
     ]
-    assert validate_cards(cards, ranges) == ["card,GLOBAL,VALID"]
+    assert validate_cards(cards, ranges) == ["card,FALLBACK_ROUTE,VALID"]
 
 
 def test_part_4_one_bad_country_token_invalidates_the_complete_rule():
@@ -152,3 +164,23 @@ def test_part_4_one_bad_country_token_invalidates_the_complete_rule():
         "400000,499999,FALLBACK,*",
     ]
     assert validate_cards(cards, ranges) == ["card,FALLBACK,VALID"]
+
+
+def test_part_4_invalid_country_fields_do_not_become_unrestricted():
+    cards = ["card,4242424242424242,US"]
+    ranges = [
+        "424242,424242,LOWERCASE,us",
+        "424242,424242,EMPTY_COUNTRIES,",
+        "424242,424242,MIXED_WILDCARD,US|*",
+        "400000,499999,FALLBACK_ROUTE",
+    ]
+    assert validate_cards(cards, ranges) == ["card,FALLBACK_ROUTE,VALID"]
+
+
+def test_part_4_wrong_range_arity_is_ignored():
+    cards = ["card,4242424242424242,US"]
+    ranges = [
+        "424242,424242,TOO_MANY,US,EXTRA",
+        "400000,499999,FALLBACK_ROUTE",
+    ]
+    assert validate_cards(cards, ranges) == ["card,FALLBACK_ROUTE,VALID"]

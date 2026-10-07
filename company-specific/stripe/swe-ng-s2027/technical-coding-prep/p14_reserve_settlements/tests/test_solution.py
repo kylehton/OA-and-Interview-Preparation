@@ -77,6 +77,17 @@ def test_part_1_invalid_account_does_not_reserve_id_and_duplicate_fails():
     ]
 
 
+def test_part_1_exact_command_arity_is_required_without_reserving_ids():
+    commands = [
+        "ACCOUNT m 10 0 extra", "ACCOUNT m 10 0",
+        "CHARGE 0 c m 10 extra", "CHARGE 0 c m 10",
+        "BALANCE 0 m extra", "BALANCE 0 m",
+    ]
+    assert process_settlements(commands) == [
+        "ERROR", "OK", "ERROR", "OK", "ERROR", "10,0,0"
+    ]
+
+
 def test_part_3_failed_payout_id_is_reusable_after_release():
     commands = [
         "ACCOUNT m 10 0", "PAYOUT 0 payout m 10", "CHARGE 0 charge m 10",
@@ -87,7 +98,7 @@ def test_part_3_failed_payout_id_is_reusable_after_release():
     ]
 
 
-def test_part_3_mutation_ids_share_one_global_namespace():
+def test_part_4_mutation_ids_share_one_global_namespace():
     commands = [
         "ACCOUNT m 0 0", "CHARGE 0 shared m 100",
         "PAYOUT 0 shared m 1", "PAYOUT 0 operation m 10",
@@ -117,3 +128,38 @@ def test_part_4_post_release_refund_uses_available_before_own_reserve():
     assert process_settlements(commands) == [
         "OK", "OK", "OK", "OK", "0,10,0", "0,0,10"
     ]
+
+
+def test_part_4_refund_at_first_release_boundary_is_not_pending():
+    commands = [
+        "ACCOUNT m 10 5000", "CHARGE 0 c m 100",
+        "REFUND 10 r c 60", "BALANCE 10 m", "BALANCE 20 m",
+    ]
+    assert process_settlements(commands) == [
+        "OK", "OK", "OK", "0,40,0", "0,0,40"
+    ]
+
+
+def test_part_4_refund_at_second_release_uses_only_available():
+    commands = [
+        "ACCOUNT m 10 5000", "CHARGE 0 c m 100", "PAYOUT 20 p m 60",
+        "REFUND 20 too_much c 50", "REFUND 20 exact c 40", "BALANCE 20 m",
+    ]
+    assert process_settlements(commands) == [
+        "OK", "OK", "OK", "ERROR", "OK", "0,0,0"
+    ]
+
+
+def test_part_1_negative_timestamp_is_invalid_and_does_not_reserve_id():
+    commands = [
+        "ACCOUNT m 10 0", "CHARGE -1 same m 10", "CHARGE 0 same m 10"
+    ]
+    assert process_settlements(commands) == ["OK", "ERROR", "OK"]
+
+
+def test_part_3_due_releases_happen_before_an_invalid_time_command():
+    commands = [
+        "ACCOUNT m 10 2000", "CHARGE 0 c m 100",
+        "PAYOUT 10 invalid m 0", "BALANCE 10 m",
+    ]
+    assert process_settlements(commands) == ["OK", "OK", "ERROR", "0,20,80"]

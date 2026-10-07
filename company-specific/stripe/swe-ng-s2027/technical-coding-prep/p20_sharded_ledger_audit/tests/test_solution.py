@@ -4,6 +4,8 @@ import json
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 
+import pytest
+
 
 def _load():
     spec = spec_from_file_location("p20_solution", Path(__file__).parents[1] / "solution.py")
@@ -62,7 +64,7 @@ def _row(*values: object) -> str:
     return handle.getvalue()
 
 
-def test_part_1_reads_complete_static_bundle():
+def test_part_4_reads_complete_static_bundle():
     assert audit_ledger_bundle(FIXTURES / "config.ini") == [
         "MISMATCH,1,acct_b,25,20",
         "BALANCE,acct_a,USD,50",
@@ -80,6 +82,12 @@ def test_part_1_first_valid_account_wins_and_invalid_does_not_reserve(tmp_path):
     )
     config = _bundle(tmp_path / "bundle", accounts, [])
     assert audit_ledger_bundle(config) == ["BALANCE,retry,USD,10"]
+
+
+def test_part_1_wrong_arity_account_row_does_not_reserve_id(tmp_path):
+    accounts = ACCOUNT_HEADER + "a,USD,100,extra\na,ÉUR,9\na,USD,7\n"
+    config = _bundle(tmp_path / "bundle", accounts, [])
+    assert audit_ledger_bundle(config) == ["BALANCE,a,USD,7"]
 
 
 def test_part_1_credit_debit_validation_and_exact_balance(tmp_path):
@@ -142,6 +150,20 @@ def test_part_2_first_syntactically_valid_sequence_wins_even_if_digest_fails(tmp
     assert audit_ledger_bundle(config) == ["BALANCE,a,USD,0"]
 
 
+def test_part_2_wrong_arity_manifest_row_does_not_reserve_sequence(tmp_path):
+    accounts = ACCOUNT_HEADER + "a,USD,0\n"
+    body = SHARD_HEADER + "1|fund|CREDIT|-|a|7\n"
+    root = tmp_path / "bundle"
+    config = _bundle(root, accounts, [(1, "one.psv", body)])
+    digest = hashlib.sha256((root / "one.psv").read_bytes()).hexdigest()
+    with (root / "shards.csv").open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["sequence", "path", "sha256"])
+        writer.writerow([1, "one.psv", digest, "extra"])
+        writer.writerow([1, "one.psv", digest])
+    assert audit_ledger_bundle(config) == ["BALANCE,a,USD,7"]
+
+
 def test_part_2_unsafe_core_path_returns_empty_without_output(tmp_path):
     config = _bundle(tmp_path / "bundle", ACCOUNT_HEADER + "a,USD,0\n", [])
     config.write_text(
@@ -154,25 +176,88 @@ def test_part_2_unsafe_core_path_returns_empty_without_output(tmp_path):
     assert not output.exists()
 
 
+def test_part_2_core_file_symlink_escape_is_a_bundle_failure(tmp_path):
+    outside = tmp_path / "outside.csv"
+    outside.write_text(ACCOUNT_HEADER + "a,USD,100\n", encoding="utf-8")
+    root = tmp_path / "bundle"
+    root.mkdir()
+    try:
+        (root / "accounts.csv").symlink_to(outside)
+    except OSError:
+        pytest.skip("symlinks are not available on this platform")
+    (root / "shards.csv").write_text("sequence,path,sha256\n", encoding="utf-8")
+    (root / "checkpoints.json").write_text("[]", encoding="utf-8")
+    config = root / "config.ini"
+    config.write_text(
+        "[ledger]\naccounts = accounts.csv\nshards = shards.csv\n"
+        "checkpoints = checkpoints.json\n",
+        encoding="utf-8",
+    )
+
+    output = tmp_path / "audit.json"
+    assert audit_ledger_bundle(config, output) == []
+    assert not output.exists()
+
+
 def test_part_2_bad_manifest_header_returns_empty(tmp_path):
     config = _bundle(tmp_path / "bundle", ACCOUNT_HEADER + "a,USD,0\n", [])
     (config.parent / "shards.csv").write_text("path,digest\none.psv,nope\n", encoding="utf-8")
     assert audit_ledger_bundle(config) == []
 
 
-def test_part_2_unsafe_shard_path_is_skipped_but_later_sequence_runs(tmp_path):
+def test_part_2_missing_config_key_and_bad_account_header_are_core_failures(tmp_path):
+    config = _bundle(tmp_path / "bundle", ACCOUNT_HEADER + "a,USD,0\n", [])
+    output = tmp_path / "audit.json"
+    config.write_text(
+        "[ledger]\naccounts = accounts.csv\nshards = shards.csv\n",
+        encoding="utf-8",
+    )
+    assert audit_ledger_bundle(config, output) == []
+    assert not output.exists()
+
+    config.write_text(
+        "[ledger]\naccounts = accounts.csv\nshards = shards.csv\n"
+        "checkpoints = checkpoints.json\n",
+        encoding="utf-8",
+    )
+    (config.parent / "accounts.csv").write_text("id,balance\na,0\n", encoding="utf-8")
+    assert audit_ledger_bundle(config, output) == []
+    assert not output.exists()
+
+
+def test_part_2_unsafe_manifest_row_does_not_reserve_sequence(tmp_path):
     outside = tmp_path / "outside.psv"
     outside.write_text(SHARD_HEADER + "1|x|CREDIT|-|a|100\n", encoding="utf-8")
     good = SHARD_HEADER + "2|y|CREDIT|-|a|4\n"
     root = tmp_path / "bundle"
-    config = _bundle(root, ACCOUNT_HEADER + "a,USD,0\n", [(2, "good.psv", good)])
+    config = _bundle(root, ACCOUNT_HEADER + "a,USD,0\n", [(1, "good.psv", good)])
     good_digest = hashlib.sha256((root / "good.psv").read_bytes()).hexdigest()
     outside_digest = hashlib.sha256(outside.read_bytes()).hexdigest()
     with (root / "shards.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
         writer.writerow(["sequence", "path", "sha256"])
         writer.writerow([1, "../outside.psv", outside_digest])
-        writer.writerow([2, "good.psv", good_digest])
+        writer.writerow([1, "good.psv", good_digest])
+    assert audit_ledger_bundle(config) == ["BALANCE,a,USD,4"]
+
+
+def test_part_2_manifest_symlink_escape_does_not_reserve_sequence(tmp_path):
+    outside = tmp_path / "outside.psv"
+    outside.write_text(SHARD_HEADER + "1|x|CREDIT|-|a|100\n", encoding="utf-8")
+    good = SHARD_HEADER + "2|y|CREDIT|-|a|4\n"
+    root = tmp_path / "bundle"
+    config = _bundle(root, ACCOUNT_HEADER + "a,USD,0\n", [(1, "good.psv", good)])
+    try:
+        (root / "linked.psv").symlink_to(outside)
+    except OSError:
+        pytest.skip("symlinks are not available on this platform")
+    good_digest = hashlib.sha256((root / "good.psv").read_bytes()).hexdigest()
+    outside_digest = hashlib.sha256(outside.read_bytes()).hexdigest()
+    with (root / "shards.csv").open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["sequence", "path", "sha256"])
+        writer.writerow([1, "linked.psv", outside_digest])
+        writer.writerow([1, "good.psv", good_digest])
     assert audit_ledger_bundle(config) == ["BALANCE,a,USD,4"]
 
 
@@ -252,3 +337,67 @@ def test_part_4_malformed_checkpoints_is_a_required_bundle_failure(tmp_path):
     config = _bundle(tmp_path / "bundle", ACCOUNT_HEADER + "a,USD,0\n", [])
     (config.parent / "checkpoints.json").write_text("not json", encoding="utf-8")
     assert audit_ledger_bundle(config) == []
+
+
+def test_part_4_non_array_checkpoints_is_a_required_bundle_failure(tmp_path):
+    config = _bundle(tmp_path / "bundle", ACCOUNT_HEADER + "a,USD,0\n", [])
+    (config.parent / "checkpoints.json").write_text("{}", encoding="utf-8")
+    output = tmp_path / "audit.json"
+    assert audit_ledger_bundle(config, output) == []
+    assert not output.exists()
+
+
+def test_part_1_dash_account_is_invalid_and_does_not_affect_operations(tmp_path):
+    accounts = ACCOUNT_HEADER + "-,USD,100\nbad|id,USD,100\na,USD,0\n"
+    body = SHARD_HEADER + "1|credit|CREDIT|-|a|5\n"
+    config = _bundle(tmp_path / "bundle", accounts, [(1, "one.psv", body)])
+    assert audit_ledger_bundle(config) == ["BALANCE,a,USD,5"]
+
+
+def test_part_1_rows_are_processed_in_file_order_not_timestamp_order(tmp_path):
+    accounts = ACCOUNT_HEADER + "a,USD,0\n"
+    body = (
+        SHARD_HEADER
+        + "10|fund|CREDIT|-|a|5\n"
+        + "1|spend|DEBIT|a|-|5\n"
+    )
+    config = _bundle(tmp_path / "bundle", accounts, [(1, "one.psv", body)])
+    assert audit_ledger_bundle(config) == ["BALANCE,a,USD,0"]
+
+
+def test_part_3_wrong_arity_and_unknown_operation_do_not_reserve_id(tmp_path):
+    accounts = ACCOUNT_HEADER + "a,USD,0\n"
+    body = (
+        SHARD_HEADER
+        + "1|same|CREDIT|-|a|5|extra\n"
+        + "2|same|UNKNOWN|-|a|5\n"
+        + "3|same|CREDIT|-|a|5\n"
+    )
+    config = _bundle(tmp_path / "bundle", accounts, [(1, "one.psv", body)])
+    assert audit_ledger_bundle(config) == ["BALANCE,a,USD,5"]
+
+
+def test_part_4_invalid_checkpoint_is_atomic_and_does_not_reserve_sequence(tmp_path):
+    accounts = ACCOUNT_HEADER + "a,USD,0\n"
+    body = SHARD_HEADER + "1|fund|CREDIT|-|a|5\n"
+    checkpoints = [
+        {"after_sequence": 1, "balances": {"a": 5, "missing": 0}},
+        {"after_sequence": 1, "balances": {"a": 7}},
+    ]
+    config = _bundle(
+        tmp_path / "bundle", accounts, [(1, "one.psv", body)], checkpoints
+    )
+    assert audit_ledger_bundle(config) == [
+        "MISMATCH,1,a,7,5",
+        "BALANCE,a,USD,5",
+    ]
+
+
+def test_part_4_valid_empty_bundle_writes_empty_json_arrays(tmp_path):
+    config = _bundle(tmp_path / "bundle", ACCOUNT_HEADER, [])
+    output = tmp_path / "nested" / "audit.json"
+    assert audit_ledger_bundle(config, output) == []
+    assert json.loads(output.read_text(encoding="utf-8")) == {
+        "mismatches": [],
+        "balances": [],
+    }

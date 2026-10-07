@@ -6,7 +6,8 @@
 
 Process whitespace-separated commands in order and return one response per
 command. Amounts are positive integer minor units. Invalid operations return
-`ERROR` and must be atomic.
+`ERROR` and must be atomic. Commands must have exactly the shown arity, and all
+IDs must be non-empty.
 
 ## Part 1 — Draft, split, and capture
 
@@ -32,7 +33,8 @@ PAYOUT <operation_id> <account_id> <positive_amount>
 
 A payout debits an account only when funds are sufficient. Successful payout,
 refund, and dispute operation IDs share a global namespace. Failed operations
-do not reserve IDs.
+do not reserve IDs. This operation-ID namespace is separate from the account-ID
+and payment-ID namespaces.
 
 ## Part 3 — Atomic refunds
 
@@ -65,6 +67,10 @@ Status returns `<state>,<original_amount>,<remaining_amount>`, where state is:
 - `REFUNDED` at zero when every deduction was a refund; or
 - `DISPUTED` at zero when at least one deduction was a dispute.
 
+Payouts change account balances but never change a payment's remaining amount
+or status. A failed refund or dispute changes neither balances, allocation
+remainders, nor status.
+
 ## Example
 
 ```python
@@ -75,4 +81,3 @@ process_marketplace([
 ])
 # ["OK", "OK", "OK", "OK", "OK", "OK", "OK", "75", "0", "PARTIAL,100,75"]
 ```
-

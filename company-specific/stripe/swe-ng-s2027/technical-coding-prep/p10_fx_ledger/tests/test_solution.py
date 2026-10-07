@@ -79,7 +79,18 @@ def test_part_1_open_and_deposit_validation_is_atomic():
     assert process_ledger(commands) == ["ERROR", "OK", "ERROR", "ERROR", "OK", "10"]
 
 
-def test_part_1_transaction_ids_are_global_across_command_types():
+def test_part_1_exact_arity_and_ascii_currency_are_required():
+    commands = [
+        "OPEN a USD extra", "OPEN a ÉUR", "OPEN a USD",
+        "DEPOSIT same a USD 10 extra", "DEPOSIT same a USD 10",
+        "BALANCE a USD extra", "BALANCE a USD",
+    ]
+    assert process_ledger(commands) == [
+        "ERROR", "ERROR", "OK", "ERROR", "OK", "ERROR", "10"
+    ]
+
+
+def test_part_4_transaction_ids_are_global_across_command_types():
     commands = [
         "OPEN a USD", "OPEN b EUR", "DEPOSIT shared a USD 20",
         "RATE 1 USD EUR 1 1", "CONVERT shared 1 a USD EUR 5",
@@ -136,3 +147,43 @@ def test_part_4_transfer_can_use_an_inverse_rate():
         "BALANCE eur EUR", "BALANCE usd USD",
     ]
     assert process_ledger(commands) == ["OK", "OK", "OK", "OK", "OK", "0", "100"]
+
+
+def test_part_2_later_rate_wins_an_equal_timestamp_tie():
+    commands = [
+        "OPEN a USD", "DEPOSIT dep a USD 100",
+        "RATE 1 USD EUR 1 2", "RATE 1 USD EUR 3 4",
+        "CONVERT conv 1 a USD EUR 100", "BALANCE a EUR",
+    ]
+    assert process_ledger(commands) == ["OK", "OK", "OK", "OK", "OK", "75"]
+
+
+def test_part_3_ineligible_direct_rate_does_not_block_eligible_inverse():
+    commands = [
+        "OPEN a USD", "DEPOSIT dep a USD 100",
+        "RATE 10 USD EUR 9 10", "RATE 5 EUR USD 2 1",
+        "CONVERT conv 5 a USD EUR 100", "BALANCE a EUR",
+    ]
+    assert process_ledger(commands) == ["OK", "OK", "OK", "OK", "OK", "50"]
+
+
+def test_part_2_same_currency_conversion_is_invalid_and_id_is_reusable():
+    commands = [
+        "OPEN a USD", "DEPOSIT dep a USD 10",
+        "CONVERT conv 1 a USD USD 5", "RATE 1 USD EUR 1 1",
+        "CONVERT conv 1 a USD EUR 5", "BALANCE a EUR",
+    ]
+    assert process_ledger(commands) == ["OK", "OK", "ERROR", "OK", "OK", "5"]
+
+
+def test_part_4_negative_operation_timestamps_are_invalid_without_reserving_ids():
+    commands = [
+        "OPEN a USD", "OPEN b EUR", "DEPOSIT dep a USD 20",
+        "RATE 0 USD EUR 1 1",
+        "CONVERT conv -1 a USD EUR 5", "CONVERT conv 0 a USD EUR 5",
+        "TRANSFER move -1 a b 5", "TRANSFER move 0 a b 5",
+        "BALANCE a USD", "BALANCE a EUR", "BALANCE b EUR",
+    ]
+    assert process_ledger(commands) == [
+        "OK", "OK", "OK", "OK", "ERROR", "OK", "ERROR", "OK", "10", "5", "5"
+    ]

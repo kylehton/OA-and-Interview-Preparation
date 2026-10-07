@@ -122,3 +122,53 @@ def test_part_1_outcomes_are_case_sensitive_and_results_are_sorted():
         "ATTEMPT,s1,safe,1,BAD",
     ]
     assert flagged_merchants(["bad"], policies, merchants, events) == ["a", "z"]
+
+
+def test_part_1_invalid_policy_bounds_do_not_reserve_category():
+    policies = [
+        "retail,COUNT,1,0",
+        "retail,COUNT,0,1",
+        "retail,COUNT,1,1",
+    ]
+    merchants = ["m,retail"]
+    events = ["ATTEMPT,a,m,1,bad"]
+    assert flagged_merchants(["bad"], policies, merchants, events) == ["m"]
+
+
+def test_part_1_empty_policy_category_is_invalid():
+    policies = [",COUNT,1,1", "retail,COUNT,1,1"]
+    merchants = ["bad,", "good,retail"]
+    events = ["ATTEMPT,a,bad,1,bad", "ATTEMPT,b,good,1,bad"]
+    assert flagged_merchants(["bad"], policies, merchants, events) == ["good"]
+
+
+def test_part_2_invalid_ratio_policy_does_not_reserve_category():
+    policies = ["retail,RATIO,10001,1", "retail,RATIO,5000,2"]
+    merchants = ["m,retail"]
+    events = ["ATTEMPT,a,m,1,bad", "ATTEMPT,b,m,1,ok"]
+    assert flagged_merchants(["bad"], policies, merchants, events) == ["m"]
+
+
+def test_part_1_empty_outcome_and_wrong_arity_do_not_reserve_event_id():
+    policies = ["retail,COUNT,1,1"]
+    merchants = ["m,retail"]
+    events = [
+        "ATTEMPT,same,m,1,",
+        "ATTEMPT,same,m,1,bad,extra",
+        "ATTEMPT,same,m,1,bad",
+    ]
+    assert flagged_merchants(["bad"], policies, merchants, events) == ["m"]
+
+
+def test_part_4_amount_ratio_boundary_is_inclusive():
+    policies = ["retail,AMOUNT_RATIO,2500,2"]
+    merchants = ["m,retail"]
+    events = ["ATTEMPT,a,m,1,bad", "ATTEMPT,b,m,3,ok"]
+    assert flagged_merchants(["bad"], policies, merchants, events) == ["m"]
+
+
+def test_part_1_wrong_arity_merchant_row_does_not_reserve_id():
+    policies = ["retail,COUNT,1,1"]
+    merchants = ["m,retail,extra", "m,retail"]
+    events = ["ATTEMPT,a,m,1,bad"]
+    assert flagged_merchants(["bad"], policies, merchants, events) == ["m"]

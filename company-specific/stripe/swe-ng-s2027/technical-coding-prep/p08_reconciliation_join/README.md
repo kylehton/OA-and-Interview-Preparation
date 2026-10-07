@@ -41,7 +41,14 @@ When no processor row has that ID, return:
 ```
 
 When the ID exists but no available row is an exact successful match, consume
-the earliest available row for that ID and return `MISMATCH`.
+the earliest available row for that ID and return:
+
+```text
+<internal_id>,MISMATCH,<processor_id>
+```
+
+Valid internal IDs are not required to be unique; every valid internal row is
+processed independently in input order.
 
 ## Part 3 — Processor orphans
 
@@ -72,4 +79,3 @@ processor = ["p1,80,USD,SUCCEEDED", "p1,100,USD,SUCCEEDED"]
 reconcile(internal, processor)
 # ["i1,MATCH,p1", "i2,MATCH,p1", "i3,MISSING,-"]
 ```
-
