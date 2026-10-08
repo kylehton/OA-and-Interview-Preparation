@@ -4,9 +4,7 @@
 **Target:** 50 minutes  
 **Entry point:** `process_invoices(commands) -> list[str]`
 
-Process whitespace-separated commands in order. Return one response per command.
-Invalid commands return `ERROR` and do not mutate or reserve any identifier.
-Every command must have exactly the shown number of tokens. All identifiers
+Process whitespace-separated commands in order. Return one response per command, for valid responses, return `OK`. Invalid commands return `ERROR` and do not mutate or reserve any identifier. Every command must have exactly the shown number of tokens. All identifiers
 must be non-empty. Currency codes are exactly three uppercase ASCII letters.
 
 ## Part 1 — Draft invoices and line items

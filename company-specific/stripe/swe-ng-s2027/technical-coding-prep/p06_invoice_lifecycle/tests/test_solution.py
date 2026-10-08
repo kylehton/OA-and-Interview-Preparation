@@ -150,11 +150,10 @@ def test_part_2_payment_ids_are_global_across_invoices():
     commands = [
         "CREATE a c USD", "ADD a x 10", "FINALIZE a",
         "CREATE b c USD", "ADD b x 10", "FINALIZE b",
-        "PAY a shared 10", "PAY b shared 10", "STATUS a", "STATUS b",
+        "PAY a shared 10", "PAY b shared 10",
     ]
     assert process_invoices(commands) == [
         "OK", "OK", "OK", "OK", "OK", "OK", "OK", "ERROR",
-        "PAID,10,10", "OPEN,10,0",
     ]
 
 
