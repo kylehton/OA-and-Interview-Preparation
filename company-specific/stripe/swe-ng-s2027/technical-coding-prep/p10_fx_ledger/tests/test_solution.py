@@ -187,3 +187,11 @@ def test_part_4_negative_operation_timestamps_are_invalid_without_reserving_ids(
     assert process_ledger(commands) == [
         "OK", "OK", "OK", "OK", "ERROR", "OK", "ERROR", "OK", "10", "5", "5"
     ]
+
+def test_part_1_invalid_numeric_token_returns_error_instead_of_raising():
+    commands = [
+        "OPEN a USD",
+        "DEPOSIT d a USD ²",
+        "BALANCE a USD",
+    ]
+    assert process_ledger(commands) == ["OK", "ERROR", "0"]
