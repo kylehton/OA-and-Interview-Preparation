@@ -151,3 +151,32 @@ def test_part_2_retry_sort_ties_use_event_then_endpoint():
     assert plan_deliveries(endpoints, attempts, 5) == [
         "RETRY,a,x,3,1", "RETRY,a,y,3,1", "RETRY,z,x,3,1"
     ]
+
+def test_part_1_timestamp_zero_is_valid():
+    endpoints = ["ep,5,20"]
+    attempts = [
+        "0,a1,event,ep,500",
+    ]
+
+    assert plan_deliveries(endpoints, attempts, 5) == [
+        "RETRY,event,ep,5,1"
+    ]
+
+
+def test_part_1_retry_sorting_uses_numeric_scheduled_time():
+    endpoints = [
+        "slow,90,100",
+        "fast,10,100",
+    ]
+
+    attempts = [
+        "10,a1,event_a,slow,500",   # scheduled at 100
+        "10,a2,event_b,fast,500",   # scheduled at 20
+    ]
+
+    # Numeric order must be 20 before 100.
+    # String order would incorrectly put "100" before "20".
+    assert plan_deliveries(endpoints, attempts, 5) == [
+        "RETRY,event_b,fast,20,1",
+        "RETRY,event_a,slow,100,1",
+    ]
