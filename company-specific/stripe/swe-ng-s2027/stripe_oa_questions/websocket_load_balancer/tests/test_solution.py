@@ -49,6 +49,14 @@ def test_part_1_routing_is_sequential_not_precomputed():
     ]
 
 
+def test_part_1_large_target_pool_uses_zero_load_targets_in_index_order():
+    requests = [
+        f"CONNECT,c{index:04d},u{index:04d},object{index:04d}" for index in range(2048)
+    ]
+    expected = [f"c{index:04d},u{index:04d},{index + 1}" for index in range(2048)]
+    assert routeRequests(100_000, 1, requests) == expected
+
+
 def test_part_2_disconnect_frees_load_before_next_route():
     requests = [
         "CONNECT,c1,u1,a",
@@ -85,6 +93,42 @@ def test_part_2_disconnect_uses_connection_id_not_supplied_metadata():
     ]
 
 
+def test_part_2_disconnect_cleans_up_stored_object_not_supplied_object():
+    requests = [
+        "CONNECT,a,ua,old",
+        "CONNECT,b,ub,other",
+        "CONNECT,c,uc,pin",
+        "CONNECT,d,ud,pin",
+        "DISCONNECT,a,wrong_user,wrong_object",
+        "CONNECT,e,ue,old",
+    ]
+    assert routeRequests(2, 10, requests) == [
+        "a,ua,1",
+        "b,ub,2",
+        "c,uc,1",
+        "d,ud,1",
+        "e,ue,2",
+    ]
+
+
+def test_part_2_missing_disconnect_cannot_clear_live_object_affinity():
+    requests = [
+        "CONNECT,a,u1,shared",
+        "CONNECT,b,u2,other",
+        "CONNECT,c,u3,pin",
+        "CONNECT,d,u4,pin",
+        "DISCONNECT,missing,wrong,shared",
+        "CONNECT,e,u5,shared",
+    ]
+    assert routeRequests(2, 10, requests) == [
+        "a,u1,1",
+        "b,u2,2",
+        "c,u3,1",
+        "d,u4,1",
+        "e,u5,1",
+    ]
+
+
 def test_part_2_disconnected_id_can_connect_again_with_new_metadata():
     requests = [
         "CONNECT,same,old_user,old_object",
@@ -94,6 +138,20 @@ def test_part_2_disconnected_id_can_connect_again_with_new_metadata():
     assert routeRequests(2, 10, requests) == [
         "same,old_user,1",
         "same,new_user,1",
+    ]
+
+
+def test_part_2_reconnected_id_uses_new_object_not_historical_object():
+    requests = [
+        "CONNECT,a,old,shared",
+        "CONNECT,b,ub,shared",
+        "DISCONNECT,a,ignored,ignored",
+        "CONNECT,a,new,fresh",
+    ]
+    assert routeRequests(2, 10, requests) == [
+        "a,old,1",
+        "b,ub,1",
+        "a,new,2",
     ]
 
 
@@ -155,6 +213,45 @@ def test_part_3_affinities_for_different_objects_are_independent():
     ]
 
 
+def test_part_3_opaque_object_ids_are_exact_and_case_sensitive():
+    requests = [
+        "CONNECT,a,u1,Doc",
+        "CONNECT,b,u2,doc",
+        "CONNECT,c,u3,Doc",
+    ]
+    assert routeRequests(2, 10, requests) == [
+        "a,u1,1",
+        "b,u2,2",
+        "c,u3,1",
+    ]
+
+
+def test_part_3_opaque_object_ids_preserve_whitespace():
+    requests = [
+        "CONNECT,a,u1, x",
+        "CONNECT,b,u2,x",
+    ]
+    assert routeRequests(2, 10, requests) == [
+        "a,u1,1",
+        "b,u2,2",
+    ]
+
+
+def test_part_3_equal_user_ids_do_not_create_affinity():
+    requests = [
+        "CONNECT,a,same,o1",
+        "CONNECT,b,other,o2",
+        "CONNECT,c,third,o3",
+        "CONNECT,d,same,o4",
+    ]
+    assert routeRequests(2, 10, requests) == [
+        "a,same,1",
+        "b,other,2",
+        "c,third,1",
+        "d,same,2",
+    ]
+
+
 def test_part_4_first_complete_example_covers_capacity_and_affinity():
     requests = [
         "CONNECT,c1,u1,docA",
@@ -204,6 +301,45 @@ def test_part_4_duplicate_active_id_replays_original_log_and_metadata():
     ]
 
 
+def test_part_4_duplicate_preserves_original_object_affinity():
+    requests = [
+        "CONNECT,a,original,shared",
+        "CONNECT,b,u2,other",
+        "CONNECT,c,u3,pin",
+        "CONNECT,d,u4,pin",
+        "CONNECT,a,replacement,replacement_object",
+        "CONNECT,e,u5,shared",
+    ]
+    assert routeRequests(2, 10, requests) == [
+        "a,original,1",
+        "b,u2,2",
+        "c,u3,1",
+        "d,u4,1",
+        "a,original,1",
+        "e,u5,1",
+    ]
+
+
+def test_part_4_duplicate_does_not_increment_object_membership():
+    requests = [
+        "CONNECT,a,ua,shared",
+        "CONNECT,b,ub,other",
+        "CONNECT,c,uc,pin",
+        "CONNECT,d,ud,pin",
+        "CONNECT,a,ignored,ignored",
+        "DISCONNECT,a,wrong,wrong",
+        "CONNECT,e,ue,shared",
+    ]
+    assert routeRequests(2, 10, requests) == [
+        "a,ua,1",
+        "b,ub,2",
+        "c,uc,1",
+        "d,ud,1",
+        "a,ua,1",
+        "e,ue,2",
+    ]
+
+
 def test_part_4_duplicate_active_id_does_not_increase_load():
     requests = [
         "CONNECT,a,u1,x",
@@ -238,6 +374,62 @@ def test_part_4_rejected_connection_id_and_object_are_not_reserved():
         "occupant,u1,1",
         "retry,u3,1",
     ]
+
+
+def test_part_4_rejected_new_object_does_not_leak_affinity():
+    requests = [
+        "CONNECT,a,u1,x",
+        "CONNECT,b,u2,y",
+        "CONNECT,rejected,u3,ghost",
+        "DISCONNECT,b,u2,y",
+        "CONNECT,c,u4,ghost",
+    ]
+    assert routeRequests(2, 1, requests) == [
+        "a,u1,1",
+        "b,u2,2",
+        "c,u4,2",
+    ]
+
+
+def test_part_4_rejected_id_retry_uses_only_the_later_requests_metadata():
+    requests = [
+        "CONNECT,pin,u1,pinned",
+        "CONNECT,fill,u2,other",
+        "CONNECT,retry,old,pinned",
+        "DISCONNECT,fill,ignored,ignored",
+        "CONNECT,retry,new,fresh",
+    ]
+    assert routeRequests(2, 1, requests) == [
+        "pin,u1,1",
+        "fill,u2,2",
+        "retry,new,2",
+    ]
+
+
+def test_part_4_rejected_affinity_connection_does_not_increment_membership():
+    requests = [
+        "CONNECT,a,u1,shared",
+        "CONNECT,b,u2,other",
+        "CONNECT,c,u3,shared",
+        "CONNECT,d,u4,shared",
+        "DISCONNECT,a,u1,shared",
+        "CONNECT,x,ux,pin",
+        "DISCONNECT,c,u3,shared",
+        "DISCONNECT,b,u2,other",
+        "CONNECT,e,u5,shared",
+    ]
+    assert routeRequests(2, 2, requests) == [
+        "a,u1,1",
+        "b,u2,2",
+        "c,u3,1",
+        "x,ux,1",
+        "e,u5,2",
+    ]
+
+
+def test_part_4_exact_maximum_output_count_is_not_truncated():
+    requests = ["CONNECT,a,u,x"] + ["CONNECT,a,ignored,y"] * 2047
+    assert routeRequests(1, 1, requests) == ["a,u,1"] * 2048
 
 
 def test_part_5_second_complete_example_removes_all_before_sorted_reroute():
@@ -305,6 +497,26 @@ def test_part_5_evictions_are_rerouted_in_lexicographic_id_order():
     ]
 
 
+def test_part_5_eviction_order_uses_full_ascii_lexicographic_order():
+    requests = [
+        "CONNECT,a,u1,shared",
+        "CONNECT,_x,u2,shared",
+        "CONNECT,A,u3,shared",
+        "CONNECT,-x,u4,shared",
+        "SHUTDOWN,1",
+    ]
+    assert routeRequests(2, 10, requests) == [
+        "a,u1,1",
+        "_x,u2,1",
+        "A,u3,1",
+        "-x,u4,1",
+        "-x,u4,2",
+        "A,u3,2",
+        "_x,u2,2",
+        "a,u1,2",
+    ]
+
+
 def test_part_5_reroutes_update_load_sequentially():
     requests = [
         "CONNECT,a,u1,shared",
@@ -320,6 +532,26 @@ def test_part_5_reroutes_update_load_sequentially():
         "d,u4,3",
         "a,u1,2",
         "b,u2,2",
+    ]
+
+
+def test_part_5_independent_reroutes_recompute_least_load_each_time():
+    requests = [
+        "CONNECT,z,uz,objz",
+        "CONNECT,h2,u2,obj2",
+        "CONNECT,h3,u3,obj3",
+        "CONNECT,a,ua,obja",
+        "DISCONNECT,h2,u2,obj2",
+        "DISCONNECT,h3,u3,obj3",
+        "SHUTDOWN,1",
+    ]
+    assert routeRequests(3, 10, requests) == [
+        "z,uz,1",
+        "h2,u2,2",
+        "h3,u3,3",
+        "a,ua,1",
+        "a,ua,2",
+        "z,uz,3",
     ]
 
 
@@ -354,6 +586,30 @@ def test_part_5_all_dropped_object_connections_leave_no_stale_affinity():
     ]
 
 
+def test_part_5_failed_reroutes_leave_no_observable_stale_affinity():
+    requests = [
+        "CONNECT,a,u1,shared",
+        "CONNECT,blocker1,u2,blocked",
+        "CONNECT,b,u3,shared",
+        "CONNECT,blocker2,u4,blocked",
+        "SHUTDOWN,1",
+        "CONNECT,x,u5,x",
+        "CONNECT,y,u6,y",
+        "DISCONNECT,blocker1,u2,blocked",
+        "DISCONNECT,blocker2,u4,blocked",
+        "CONNECT,new,u7,shared",
+    ]
+    assert routeRequests(2, 2, requests) == [
+        "a,u1,1",
+        "blocker1,u2,2",
+        "b,u3,1",
+        "blocker2,u4,2",
+        "x,u5,1",
+        "y,u6,1",
+        "new,u7,2",
+    ]
+
+
 def test_part_5_dropped_eviction_id_can_connect_later_as_new():
     requests = [
         "CONNECT,same,old_user,old_object",
@@ -363,6 +619,19 @@ def test_part_5_dropped_eviction_id_can_connect_later_as_new():
     assert routeRequests(1, 1, requests) == [
         "same,old_user,1",
         "same,new_user,1",
+    ]
+
+
+def test_part_5_dropped_id_retry_uses_only_the_later_requests_metadata():
+    requests = [
+        "CONNECT,a,old,old_object",
+        "CONNECT,blocker,ub,new_object",
+        "SHUTDOWN,1",
+        "CONNECT,a,new,new_object",
+    ]
+    assert routeRequests(2, 1, requests) == [
+        "a,old,1",
+        "blocker,ub,2",
     ]
 
 
@@ -386,6 +655,35 @@ def test_part_5_repeated_shutdown_of_same_target_is_a_new_event():
         "a,u1,2",
         "c,u3,1",
         "c,u3,2",
+    ]
+
+
+def test_part_5_later_shutdown_evicts_successfully_rerouted_connections():
+    requests = [
+        "CONNECT,a,u1,x",
+        "CONNECT,b,u2,y",
+        "SHUTDOWN,1",
+        "SHUTDOWN,2",
+    ]
+    assert routeRequests(2, 10, requests) == [
+        "a,u1,1",
+        "b,u2,2",
+        "a,u1,2",
+        "a,u1,1",
+        "b,u2,1",
+    ]
+
+
+def test_part_5_multidigit_shutdown_target_is_parsed_completely():
+    requests = [
+        *(f"CONNECT,c{index},u{index},object{index}" for index in range(1, 11)),
+        "SHUTDOWN,10",
+        "CONNECT,new,new_user,new_object",
+    ]
+    assert routeRequests(10, 10, requests) == [
+        *(f"c{index},u{index},{index}" for index in range(1, 11)),
+        "c10,u10,1",
+        "new,new_user,10",
     ]
 
 

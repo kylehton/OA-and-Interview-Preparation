@@ -41,6 +41,11 @@ def test_part_1_overlapping_and_adjacent_allowed_windows_merge():
     assert scheduleDeploymentWindows("part1", rows) == [[10, 40]]
 
 
+def test_part_1_nested_allowed_window_does_not_shrink_outer_union():
+    rows = ["0,100,allowed", "20,30,allowed"]
+    assert scheduleDeploymentWindows("part1", rows) == [[0, 100]]
+
+
 def test_part_1_disjoint_freezes_split_an_allowed_window():
     rows = [
         "0,100,allowed",
@@ -64,6 +69,42 @@ def test_part_1_overlapping_and_adjacent_freezes_act_as_one_union():
     assert scheduleDeploymentWindows("part1", rows) == [[0, 20], [80, 100]]
 
 
+def test_part_1_nested_freeze_does_not_shrink_outer_freeze_union():
+    rows = [
+        "0,100,allowed",
+        "20,80,freeze",
+        "30,40,freeze",
+    ]
+    assert scheduleDeploymentWindows("part1", rows) == [[0, 20], [80, 100]]
+
+
+def test_part_1_one_freeze_can_span_multiple_allowed_intervals():
+    rows = [
+        "0,10,allowed",
+        "20,30,allowed",
+        "5,25,freeze",
+    ]
+    assert scheduleDeploymentWindows("part1", rows) == [[0, 5], [25, 30]]
+
+
+def test_part_1_freezes_are_sorted_independently_before_subtraction():
+    rows = [
+        "0,100,allowed",
+        "60,80,freeze",
+        "20,40,freeze",
+    ]
+    assert scheduleDeploymentWindows("part1", rows) == [
+        [0, 20],
+        [40, 60],
+        [80, 100],
+    ]
+
+
+def test_part_1_freeze_before_allowed_row_has_same_set_semantics():
+    rows = ["10,20,freeze", "0,30,allowed"]
+    assert scheduleDeploymentWindows("part1", rows) == [[0, 10], [20, 30]]
+
+
 def test_part_1_freezes_are_clipped_to_allowed_time():
     rows = [
         "20,30,allowed",
@@ -84,6 +125,11 @@ def test_part_1_freeze_only_input_has_no_deployable_time():
 
 def test_part_1_half_open_freeze_touching_allowed_end_does_not_remove_time():
     rows = ["10,20,allowed", "20,30,freeze"]
+    assert scheduleDeploymentWindows("part1", rows) == [[10, 20]]
+
+
+def test_part_1_half_open_freeze_touching_allowed_start_does_not_remove_time():
+    rows = ["10,20,allowed", "0,10,freeze"]
     assert scheduleDeploymentWindows("part1", rows) == [[10, 20]]
 
 
@@ -143,6 +189,11 @@ def test_part_2_positive_offset_normalizes_interval_into_end_of_week():
     assert scheduleDeploymentWindows("part2", rows) == [[9960, 10020]]
 
 
+def test_part_2_conversion_can_land_exactly_on_utc_week_end():
+    rows = ["0,0,1,5", "0,120,allowed,120"]
+    assert scheduleDeploymentWindows("part2", rows) == [[9960, 10080]]
+
+
 def test_part_2_negative_offset_can_also_cross_week_boundary():
     rows = ["0,0,1,5", "9900,10000,allowed,-120"]
     assert scheduleDeploymentWindows("part2", rows) == [
@@ -156,6 +207,20 @@ def test_part_2_negative_offset_normalizes_interval_into_start_of_week():
     assert scheduleDeploymentWindows("part2", rows) == [[40, 120]]
 
 
+def test_part_2_conversion_can_land_exactly_on_utc_week_start():
+    rows = ["0,0,1,5", "9960,10080,allowed,-120"]
+    assert scheduleDeploymentWindows("part2", rows) == [[0, 120]]
+
+
+def test_part_2_offsets_are_normalized_across_multiple_whole_weeks():
+    rows = [
+        "0,0,1,5",
+        "100,200,allowed,20160",
+        "300,400,allowed,-20160",
+    ]
+    assert scheduleDeploymentWindows("part2", rows) == [[100, 200], [300, 400]]
+
+
 def test_part_2_converted_freeze_can_cross_both_week_edges():
     rows = [
         "0,0,1,5",
@@ -165,9 +230,30 @@ def test_part_2_converted_freeze_can_cross_both_week_edges():
     assert scheduleDeploymentWindows("part2", rows) == [[60, 10020]]
 
 
+def test_part_2_wrapped_allowed_and_freeze_pieces_subtract_correctly():
+    rows = [
+        "0,0,1,5",
+        "60,180,allowed,120",
+        "90,150,freeze,120",
+    ]
+    assert scheduleDeploymentWindows("part2", rows) == [
+        [30, 60],
+        [10020, 10050],
+    ]
+
+
 def test_part_2_full_week_window_remains_full_week_after_offset():
     rows = ["0,0,1,5", "0,10080,allowed,60"]
     assert scheduleDeploymentWindows("part2", rows) == [[0, 10080]]
+
+
+def test_part_2_full_week_freeze_remains_full_week_after_offset():
+    rows = [
+        "0,0,1,5",
+        "0,10080,allowed,0",
+        "0,10080,freeze,60",
+    ]
+    assert scheduleDeploymentWindows("part2", rows) == []
 
 
 def test_part_2_lead_time_clips_inside_a_deployable_window():
@@ -199,6 +285,15 @@ def test_part_2_split_boundary_pieces_must_each_meet_minimum_duration():
     assert scheduleDeploymentWindows("part2", rows) == []
 
 
+def test_part_2_split_piece_merges_globally_before_duration_filtering():
+    rows = [
+        "0,0,100,5",
+        "60,180,allowed,120",
+        "60,120,allowed,0",
+    ]
+    assert scheduleDeploymentWindows("part2", rows) == [[0, 120]]
+
+
 def test_part_2_short_fragments_created_by_freeze_are_discarded():
     rows = [
         "0,0,10,5",
@@ -228,6 +323,25 @@ def test_part_2_duration_filtering_happens_before_k_limit():
     assert scheduleDeploymentWindows("part2", rows) == [[10, 20]]
 
 
+def test_part_2_freeze_subtraction_happens_before_k_limit():
+    rows = [
+        "0,0,10,1",
+        "0,20,allowed,0",
+        "0,20,freeze,0",
+        "30,40,allowed,0",
+    ]
+    assert scheduleDeploymentWindows("part2", rows) == [[30, 40]]
+
+
+def test_part_2_adjacent_windows_merge_before_k_limit():
+    rows = [
+        "0,0,1,1",
+        "10,20,allowed,0",
+        "20,30,allowed,0",
+    ]
+    assert scheduleDeploymentWindows("part2", rows) == [[10, 30]]
+
+
 def test_part_2_zero_k_returns_no_windows():
     rows = ["0,0,1,0", "10,20,allowed,0"]
     assert scheduleDeploymentWindows("part2", rows) == []
@@ -238,6 +352,11 @@ def test_part_2_lead_time_at_or_beyond_week_end_returns_empty():
     beyond = ["10000,81,1,5", "0,10080,allowed,0"]
     assert scheduleDeploymentWindows("part2", at_end) == []
     assert scheduleDeploymentWindows("part2", beyond) == []
+
+
+def test_part_2_final_minute_of_week_can_be_returned():
+    rows = ["10079,0,1,5", "0,10080,allowed,0"]
+    assert scheduleDeploymentWindows("part2", rows) == [[10079, 10080]]
 
 
 def test_part_2_lead_time_clips_each_split_week_boundary_piece_linearly():

@@ -30,9 +30,7 @@ def test_part_1_first_sample_accumulates_by_merchant_and_code():
 
 
 def test_part_1_exactly_five_failures_in_one_row_triggers():
-    assert detectIncidents(["7,merchant,500,5"]) == [
-        "7,TRIGGER,merchant,500"
-    ]
+    assert detectIncidents(["7,merchant,500,5"]) == ["7,TRIGGER,merchant,500"]
 
 
 def test_part_1_four_failures_do_not_trigger():
@@ -60,8 +58,20 @@ def test_part_1_merchants_and_exact_error_codes_are_isolated():
 
 
 def test_part_1_client_errors_are_failures_too():
-    assert detectIncidents(["1,merchant,429,5"]) == [
-        "1,TRIGGER,merchant,429"
+    assert detectIncidents(["1,merchant,429,5"]) == ["1,TRIGGER,merchant,429"]
+
+
+def test_part_1_arbitrary_valid_4xx_and_5xx_codes_are_failures():
+    logs = ["0,merchant,418,5", "1,merchant,599,5"]
+    assert detectIncidents(logs) == [
+        "0,TRIGGER,merchant,418",
+        "1,TRIGGER,merchant,599",
+    ]
+
+
+def test_part_1_opaque_merchant_id_is_preserved():
+    assert detectIncidents(["0,acct-1.example,404,5"]) == [
+        "0,TRIGGER,acct-1.example,404"
     ]
 
 
@@ -99,9 +109,7 @@ def test_part_2_exactly_one_percent_fails_but_just_over_triggers():
 
 
 def test_part_2_zero_success_volume_satisfies_impact_condition():
-    assert detectIncidents(["1,merchant,500,5"]) == [
-        "1,TRIGGER,merchant,500"
-    ]
+    assert detectIncidents(["1,merchant,500,5"]) == ["1,TRIGGER,merchant,500"]
 
 
 def test_part_2_success_counts_accumulate_across_the_window():
@@ -137,6 +145,14 @@ def test_part_2_integer_comparison_handles_large_exact_boundary():
     assert detectIncidents(logs) == ["4,TRIGGER,over,500"]
 
 
+def test_part_2_impact_comparison_is_exact_beyond_float_precision():
+    logs = [
+        "0,merchant,200,9999999999999999",
+        "1,merchant,500,100000000000000",
+    ]
+    assert detectIncidents(logs) == ["1,TRIGGER,merchant,500"]
+
+
 def test_part_3_failure_expiry_resolves_after_but_not_at_inclusive_boundary():
     logs = [
         "1,merchant,500,5",
@@ -168,6 +184,14 @@ def test_part_3_unrelated_merchant_does_not_cause_resolution():
 
 def test_part_3_different_error_code_for_same_merchant_can_resolve_alert():
     logs = ["0,merchant,500,5", "30,merchant,503,1"]
+    assert detectIncidents(logs) == [
+        "0,TRIGGER,merchant,500",
+        "30,RESOLVE,merchant,500",
+    ]
+
+
+def test_part_3_current_error_code_row_can_resolve_its_own_alert():
+    logs = ["0,merchant,500,5", "30,merchant,500,1"]
     assert detectIncidents(logs) == [
         "0,TRIGGER,merchant,500",
         "30,RESOLVE,merchant,500",
@@ -222,6 +246,33 @@ def test_part_3_alerts_for_two_error_codes_resolve_independently():
     ]
 
 
+def test_part_3_one_row_resolves_every_eligible_active_code():
+    logs = [
+        "0,merchant,500,5",
+        "0,merchant,503,5",
+        "30,merchant,200,1",
+    ]
+    assert detectIncidents(logs) == [
+        "0,TRIGGER,merchant,500",
+        "0,TRIGGER,merchant,503",
+        "30,RESOLVE,merchant,500",
+        "30,RESOLVE,merchant,503",
+    ]
+
+
+def test_part_3_success_volume_can_resolve_only_one_of_multiple_codes():
+    logs = [
+        "0,merchant,500,5",
+        "1,merchant,503,6",
+        "2,merchant,200,500",
+    ]
+    assert detectIncidents(logs) == [
+        "0,TRIGGER,merchant,500",
+        "1,TRIGGER,merchant,503",
+        "2,RESOLVE,merchant,500",
+    ]
+
+
 def test_part_3_same_timestamp_rows_are_evaluated_in_input_order():
     logs = ["10,merchant,500,5", "10,merchant,200,500"]
     assert detectIncidents(logs) == [
@@ -261,6 +312,42 @@ def test_part_3_output_is_sorted_independently_of_emission_order():
     ]
 
 
+def test_part_3_output_timestamps_are_sorted_numerically():
+    logs = ["2,z_merchant,500,5", "10,a_merchant,500,5"]
+    assert detectIncidents(logs) == [
+        "2,TRIGGER,z_merchant,500",
+        "10,TRIGGER,a_merchant,500",
+    ]
+
+
+def test_part_3_sort_key_compares_status_before_event_type():
+    logs = [
+        "0,merchant,500,5",
+        "30,merchant,200,1",
+        "30,merchant,400,5",
+    ]
+    assert detectIncidents(logs) == [
+        "0,TRIGGER,merchant,500",
+        "30,TRIGGER,merchant,400",
+        "30,RESOLVE,merchant,500",
+    ]
+
+
+def test_part_3_sort_key_compares_merchant_before_event_type():
+    logs = [
+        "0,a_merchant,200,500",
+        "0,z_merchant,500,5",
+        "1,a_merchant,500,5",
+        "30,a_merchant,200,1",
+        "30,z_merchant,200,1",
+    ]
+    assert detectIncidents(logs) == [
+        "0,TRIGGER,z_merchant,500",
+        "30,TRIGGER,a_merchant,500",
+        "30,RESOLVE,z_merchant,500",
+    ]
+
+
 def test_part_3_expired_success_volume_can_trigger_on_a_later_success_row():
     logs = [
         "0,merchant,200,500",
@@ -268,3 +355,49 @@ def test_part_3_expired_success_volume_can_trigger_on_a_later_success_row():
         "30,merchant,200,1",
     ]
     assert detectIncidents(logs) == ["30,TRIGGER,merchant,500"]
+
+
+def test_part_3_one_row_triggers_every_qualifying_remembered_code():
+    logs = [
+        "0,merchant,200,1000",
+        "1,merchant,500,5",
+        "2,merchant,503,6",
+        "30,merchant,400,1",
+    ]
+    assert detectIncidents(logs) == [
+        "30,TRIGGER,merchant,500",
+        "30,TRIGGER,merchant,503",
+    ]
+
+
+def test_part_3_other_merchant_row_cannot_trigger_dormant_alert():
+    logs = [
+        "0,merchant,200,500",
+        "1,merchant,500,5",
+        "30,other,200,1",
+    ]
+    assert detectIncidents(logs) == []
+
+
+def test_part_3_large_integer_timestamps_keep_exact_window_boundary():
+    logs = [
+        "9007199254740993,merchant,500,4",
+        "9007199254741022,merchant,500,1",
+    ]
+    assert detectIncidents(logs) == ["9007199254741022,TRIGGER,merchant,500"]
+
+
+def test_part_3_zero_count_row_still_advances_that_merchants_window():
+    logs = ["0,merchant,500,5", "30,merchant,200,0"]
+    assert detectIncidents(logs) == [
+        "0,TRIGGER,merchant,500",
+        "30,RESOLVE,merchant,500",
+    ]
+
+
+def test_part_3_merchant_sorting_uses_ascii_code_point_order():
+    logs = ["0,lowercase,500,5", "0,Uppercase,500,5"]
+    assert detectIncidents(logs) == [
+        "0,TRIGGER,Uppercase,500",
+        "0,TRIGGER,lowercase,500",
+    ]

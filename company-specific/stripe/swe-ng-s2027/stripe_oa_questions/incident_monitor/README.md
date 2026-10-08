@@ -72,6 +72,12 @@ Assumptions:
 - Logs are guaranteed to be sorted by timestamp.
 - The input contains no duplicate `(timestamp, merchant_id, status_code)`
   entries.
+- Timestamps and counts are nonnegative integers. A count of zero is valid: its
+  row still advances that merchant's evaluation time and can trigger or resolve
+  alerts as older records leave the window.
+- Merchant IDs are nonempty ASCII strings that contain no commas. Sort merchant
+  IDs lexicographically by ASCII code point, so uppercase letters precede
+  lowercase letters.
 
 ## Output Format
 
@@ -212,8 +218,7 @@ detectIncidents(logs: String[]) → String[]
 Python workspace signature:
 
 ```python
-def detectIncidents(logs: list[str]) -> list[str]:
-    ...
+def detectIncidents(logs: list[str]) -> list[str]: ...
 ```
 
 ## Examples

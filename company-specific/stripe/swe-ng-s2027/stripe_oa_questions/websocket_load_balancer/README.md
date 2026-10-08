@@ -69,8 +69,8 @@ that connection's original user and target log.
 
 First remove all of its active connections and clear their old state, including
 any object affinity whose last connection was removed. Then reroute the evicted
-connections in ascending lexicographic `connectionId` order using Parts 1–4.
-The shutting-down target remains ineligible throughout this rerouting.
+connections in ascending ASCII code-point order by `connectionId` using Parts
+1–4. The shutting-down target remains ineligible throughout this rerouting.
 
 Each successful reroute appends a new log. An unplaceable connection is dropped
 without a log. After all evictions are processed, the target becomes available
@@ -92,8 +92,7 @@ def routeRequests(
     numTargets: int,
     maxConnectionsPerTarget: int,
     requests: list[str],
-) -> list[str]:
-    ...
+) -> list[str]: ...
 ```
 
 ## Examples
@@ -211,6 +210,9 @@ Connection identity is determined only by `connectionId`. The `userId` and
 connection; if that connection ID is active, remove its stored connection and
 its stored object membership.
 
+Treat `objectId` as an exact, opaque field. Do not trim whitespace or normalize
+case. `userId` is output metadata only: equal user IDs do not create affinity.
+
 For a duplicate active `CONNECT`, append the stored connection's original
 `connectionId,userId,targetIndex` record. Ignore the duplicate request's new
 user and object values, do not add load, and do not create or change affinity.
@@ -223,4 +225,3 @@ Reroutes are then ordinary new assignments using each evicted connection's
 stored user and object, except that the shutting-down target is temporarily
 ineligible. The output bounds are input guarantees; do not truncate otherwise
 valid assignment logs.
-

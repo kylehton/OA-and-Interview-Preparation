@@ -21,8 +21,9 @@ deployments are allowed.
 
 ## Time Format and Window Representation
 
-Time is represented as an integer `minute_of_week` in the range `[0, 10079]`,
-meaning minutes since Monday 00:00. For example:
+Each minute position is represented as an integer `minute_of_week` in the range
+`[0, 10079]`, meaning minutes since Monday 00:00. An exclusive window endpoint
+may additionally equal `10080`. For example:
 
 - `0` is Monday 00:00;
 - `60` is Monday 01:00;
@@ -37,7 +38,7 @@ Implement `scheduleDeploymentWindows`. The value of `part` selects one of the
 following stages, and `inputCsv` contains the corresponding CSV rows. Return the
 resulting deployment windows as `[[start, end], ...]`, sorted by start time.
 
-## Part 1: Allowed Windows (Tests 1–4)
+## Part 1: Allowed Windows (Original Source Tests 1–4)
 
 A team defines the times of the week when deployments are allowed. During an
 incident, the Service Deployments team can also define freeze windows that
@@ -71,7 +72,7 @@ The deployable output is:
 [[540, 570], [585, 600]]
 ```
 
-## Part 2: Time Zones and Minimum Duration (Tests 5–11)
+## Part 2: Time Zones and Minimum Duration (Original Source Tests 5–11)
 
 The scheduler now aggregates windows from teams around the world. Each window
 may use a different local time zone, but all rows contribute to one global
@@ -122,8 +123,7 @@ scheduleDeploymentWindows(part: String, inputCsv: String[]) → int[][]
 Python workspace signature:
 
 ```python
-def scheduleDeploymentWindows(part: str, inputCsv: list[str]) -> list[list[int]]:
-    ...
+def scheduleDeploymentWindows(part: str, inputCsv: list[str]) -> list[list[int]]: ...
 ```
 
 ## Examples
@@ -162,6 +162,13 @@ interval to `[1030,1045)`. Both remaining windows are at least 10 minutes long.
 - Weekly minute values are normalized over a 10080-minute week.
 - All intervals are half-open.
 - Window rows use type `allowed` or `freeze`.
+- `0 <= utc_now < 10080`.
+- `lead_time_minutes >= 0`.
+- `1 <= min_continuous_minutes <= 10080`.
+- `k >= 0`.
+- Timezone offsets are integers and are normalized modulo the 10080-minute week.
+- If `utc_now + lead_time_minutes >= 10080`, no returned interval can begin at
+  an eligible minute, so return `[]`.
 
 ## Deterministic week-boundary interpretation used by the tests
 
@@ -188,4 +195,3 @@ For Part 2, apply operations in this order:
 4. discard intervals shorter than `min_continuous_minutes` after clipping;
 5. sort by start; and
 6. return the first `k`.
-

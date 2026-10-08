@@ -9,4 +9,3 @@ def scheduleDeploymentWindows(
 ) -> list[list[int]]:
     """Return sorted continuously deployable windows."""
     raise NotImplementedError
-

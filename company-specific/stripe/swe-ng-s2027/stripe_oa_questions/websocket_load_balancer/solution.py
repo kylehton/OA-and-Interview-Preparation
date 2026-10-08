@@ -10,4 +10,3 @@ def routeRequests(
 ) -> list[str]:
     """Process the request stream and return successful assignment logs."""
     raise NotImplementedError
-
