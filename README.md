@@ -27,13 +27,13 @@ Offer: 1 (F25) + 3 (S26)
 ### Fall 2026 + Spring 2027 + Summer 2027 - Senior
 
 **Internship Applications**
-Applied: 22
+Applied: 30
 OA (automated + non-automated): 0 + 2
 Interview: 1 + 1
 Offer: 0
 
 **New Grad Applications**
-Applied: 29
-OA (automated + non-automated): 2 + 1
-Interview: 1 + 1 + 1
-Offer: 0
+Applied: 55
+OA (automated + non-automated): 2 + 2
+Interview: 2 + 3 + 1
+Offer: 1 (AWS RO) + 0
